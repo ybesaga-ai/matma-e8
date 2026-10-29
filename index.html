@@ -1,0 +1,686 @@
+<title>Matma E8</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow column like an exam booklet; tasks sit on squared notebook paper, ink-blue pen accent, highlighter for marks. */
+:root{
+  --bg:#f3f5fa; --paper:#ffffff; --fg:#151b2e; --muted:#586179; --line:#d9dfec; --grid:#e8ecf5;
+  --accent:#2346c9; --accent-soft:#e2e8fd; --on-accent:#ffffff;
+  --mark:rgba(255,214,51,.55);
+  --ok:#1b7a45; --ok-soft:#dff2e6; --bad:#c2352b; --bad-soft:#fbe4e1;
+  --c1:#2346c9; --c2:#6f8be6; --c3:#aebef3; --c4:#e8962c;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1220; --paper:#161b2b; --fg:#e6e9f3; --muted:#9ba3b9; --line:#2a3148; --grid:#1d2335;
+  --accent:#8ea7ff; --accent-soft:#222c52; --on-accent:#0e1220; --mark:rgba(255,214,51,.28);
+  --ok:#62d297; --ok-soft:#14331f; --bad:#ff8174; --bad-soft:#3b1b19;
+  --c1:#8ea7ff; --c2:#5a74cf; --c3:#36457f; --c4:#e6a24c; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e1220; --paper:#161b2b; --fg:#e6e9f3; --muted:#9ba3b9; --line:#2a3148; --grid:#1d2335;
+  --accent:#8ea7ff; --accent-soft:#222c52; --on-accent:#0e1220; --mark:rgba(255,214,51,.28);
+  --ok:#62d297; --ok-soft:#14331f; --bad:#ff8174; --bad-soft:#3b1b19;
+  --c1:#8ea7ff; --c2:#5a74cf; --c3:#36457f; --c4:#e6a24c; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:17px/1.55 var(--body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 64px}
+h1,h2,h3{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:2.2rem;font-weight:800;letter-spacing:-.01em}
+h2{font-size:1.45rem;font-weight:800}
+h3{font-size:1.1rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hl{background:linear-gradient(transparent 55%,var(--mark) 55%);padding:0 .1em}
+.muted{color:var(--muted)}
+.eyebrow{font:700 .75rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:6px 18px}
+.brand{font:800 1.25rem var(--display);display:flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;padding:0}
+.brand .sq{width:26px;height:26px;border:2px solid var(--accent);border-radius:4px;display:grid;place-items:center;font:700 .8rem var(--mono);color:var(--accent)}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nav button{background:none;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:700}
+.nav button[aria-current="page"]{color:var(--fg);background:var(--accent-soft)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--accent);background:var(--accent);color:var(--on-accent);padding:10px 18px;border-radius:10px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.quiet{border-color:var(--line);background:var(--paper);color:var(--fg)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.danger{border-color:var(--bad);background:var(--bad);color:var(--paper)}
+
+/* home */
+.hero{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:end;padding-block:8px 8px}
+.hero p{max-width:52ch}
+.count{text-align:right;font-family:var(--mono)}
+.count b{display:block;font-size:3.2rem;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:12px;background:var(--paper);overflow:hidden}
+.facts div{padding:12px 14px;border-left:1px solid var(--line);min-width:0}
+.facts div:first-child{border-left:0}
+.facts b{display:block;font:700 1.15rem var(--mono);font-variant-numeric:tabular-nums}
+.facts span{font-size:.85rem;color:var(--muted)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mode{text-align:left;border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:18px;cursor:pointer;display:flex;flex-direction:column;gap:8px;min-width:0}
+.mode:hover{border-color:var(--accent)}
+.mode .go{margin-top:auto;color:var(--accent);font-weight:700}
+.links{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.links li{display:grid;grid-template-columns:2rem 1fr;gap:6px;padding:12px 0;border-bottom:1px solid var(--line)}
+.links .n{font:700 .9rem var(--mono);color:var(--muted);padding-top:2px}
+.links a{font-weight:700}
+.hist{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* topics */
+.topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.topic{text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:10px;min-width:0}
+.topic:hover{border-color:var(--accent)}
+.topic .meta{display:flex;justify-content:space-between;font:500 .85rem var(--mono);color:var(--muted)}
+.bar{height:6px;border-radius:3px;background:var(--grid);overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar i.b{background:var(--bad)}
+
+/* task */
+.task{background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px;border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.task-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.task-h .num{font:800 1.1rem var(--display)}
+.pts{font:700 .8rem var(--mono);padding:3px 8px;border-radius:6px;background:var(--mark);color:var(--fg)}
+.tag{font-size:.85rem;color:var(--muted)}
+.q{font-size:1.08rem}
+.q p+p{margin-top:8px}
+.instr{font-size:.9rem;color:var(--muted)}
+.fig-wrap{overflow-x:auto;background:var(--paper);border-radius:8px;padding:6px 0}
+.fig{display:block;max-width:100%;height:auto;margin:0 auto}
+.fig text{fill:var(--fg);font:12px var(--mono)}
+.fig .ax{stroke:var(--muted);stroke-width:1.2;fill:none}
+.fig .gl{stroke:var(--line);stroke-width:1;fill:none}
+.fig .col{fill:var(--accent)}
+.fig .ln{stroke:var(--accent);stroke-width:2.5;fill:none}
+.fig .dot{fill:var(--accent)}
+.fig .shape{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2}
+.fig .hole{fill:var(--paper);stroke:var(--accent);stroke-width:2}
+.fig .s1{fill:var(--c1)} .fig .s2{fill:var(--c2)} .fig .s3{fill:var(--c3)} .fig .s4{fill:var(--c4)}
+table.data{border-collapse:collapse;margin:0 auto;font-variant-numeric:tabular-nums;background:var(--paper)}
+table.data th,table.data td{border:1px solid var(--line);padding:6px 12px;text-align:left}
+table.data th{background:var(--accent-soft)}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:10px 12px;cursor:pointer;min-width:0}
+.opt .k{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;font:700 .85rem var(--mono)}
+.opt .t{min-width:0}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .k{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.opt:disabled{cursor:default;opacity:1}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .k{background:var(--ok);border-color:var(--ok);color:var(--paper)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .k{background:var(--bad);border-color:var(--bad);color:var(--paper)}
+.pf{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--paper)}
+.pf-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+.pf-row:first-child{border-top:0}
+.pf-s{min-width:0}
+.pf-b{display:flex;gap:6px}
+.pf-b .opt{padding:6px}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp .opts{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.numin{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.numin input{font:700 1.15rem var(--mono);width:12rem;max-width:100%;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:var(--fg)}
+.numin input:focus{border-color:var(--accent);outline:none}
+.numin.ok input{border-color:var(--ok);background:var(--ok-soft)}
+.numin.bad input{border-color:var(--bad);background:var(--bad-soft)}
+textarea{width:100%;min-height:110px;font:1rem/1.5 var(--mono);padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:var(--fg);resize:vertical}
+textarea:focus{border-color:var(--accent);outline:none}
+
+.hints{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.hints li{border-left:4px solid var(--c4);background:var(--paper);padding:8px 12px;border-radius:0 8px 8px 0}
+.hints b{font-family:var(--mono);font-size:.8rem;color:var(--muted);display:block}
+.fb{padding:12px 14px;border-radius:10px;font-weight:700}
+.fb.ok{background:var(--ok-soft);color:var(--ok)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb.info{background:var(--accent-soft);color:var(--fg)}
+.sol{background:var(--paper);border:1px dashed var(--accent);border-radius:12px;padding:14px 16px}
+.sol h3{margin-bottom:6px;color:var(--accent)}
+.sol p+p{margin-top:6px}
+.crit{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.crit label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.crit input{width:20px;height:20px;margin-top:3px;accent-color:var(--ok);flex:none}
+
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dots button{width:32px;height:32px;border-radius:8px;border:2px solid var(--line);background:var(--paper);font:700 .8rem var(--mono);cursor:pointer}
+.dots button.ok{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.dots button.bad{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.dots button[aria-current="true"]{outline:3px solid var(--accent);outline-offset:1px}
+.back{background:none;border:0;color:var(--accent);font-weight:700;cursor:pointer;padding:0}
+
+/* exam */
+.ebar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-block:10px;border-bottom:1px solid var(--line)}
+.timer{font:700 1.6rem var(--mono);font-variant-numeric:tabular-nums}
+.timer.low{color:var(--bad)}
+.part{font:800 1rem var(--display);padding-top:8px;border-top:2px solid var(--fg)}
+.score{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px}
+.score .big{font:700 3rem/1 var(--mono);font-variant-numeric:tabular-nums}
+.score .big small{font-size:1.2rem;color:var(--muted)}
+.tbl-wrap{overflow-x:auto}
+table.brk{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+table.brk td,table.brk th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+table.brk td:last-child,table.brk th:last-child{text-align:right;font-family:var(--mono);white-space:nowrap}
+.pause{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:40px 20px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+
+/* math */
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.92em;line-height:1.15;margin:0 .12em}
+.fr>span:first-child{border-bottom:1.5px solid currentColor;padding:0 .2em}
+.fr>span:last-child{padding:0 .2em}
+.rt{white-space:nowrap}
+.rt>span{border-top:1.5px solid currentColor;padding:0 .1em;margin-left:.05em}
+
+@media (max-width:620px){
+  h1{font-size:1.8rem}
+  .hero{grid-template-columns:1fr}
+  .count{text-align:left}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts div:nth-child(3){border-left:0}
+  .facts div:nth-child(n+3){border-top:1px solid var(--line)}
+  .modes{grid-template-columns:1fr}
+  .opts{grid-template-columns:1fr}
+  .task{padding:16px}
+  .score{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){ .opt,.mode,.topic{transition:border-color .15s,background-color .15s} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <button class="brand" type="button" data-go="home"><span class="sq">E8</span>Matma E8</button>
+    <nav class="nav" aria-label="Menu">
+      <button type="button" data-go="home">Start</button>
+      <button type="button" data-go="topics">Ćwiczenia</button>
+      <button type="button" data-go="exam">Egzamin próbny</button>
+    </nav>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script>
+// ---------- math helpers ----------
+const f=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const rt=x=>`<span class="rt">√<span>${x}</span></span>`;
+const cb=x=>`<span class="rt"><sup>3</sup>√<span>${x}</span></span>`;
+
+// ---------- figure generators (all marks on one scale) ----------
+function barChart(cats,vals,xl,yl){
+  const W=360,H=230,L=44,B=40,T=16,R=12,step=2,max=Math.ceil(Math.max(...vals)/step)*step;
+  const ph=H-B-T,pw=W-L-R,sy=ph/max,bw=pw/cats.length;
+  let g='';
+  for(let v=0;v<=max;v+=step){const y=T+ph-v*sy;g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text x="${L-8}" y="${y+4}" text-anchor="end">${v}</text>`}
+  cats.forEach((c,i)=>{const h=vals[i]*sy,x=L+i*bw+bw*.2;g+=`<rect class="col" x="${x}" y="${T+ph-h}" width="${bw*.6}" height="${h}" rx="2"/><text x="${x+bw*.3}" y="${H-B+16}" text-anchor="middle">${c}</text>`});
+  g+=`<line class="ax" x1="${L}" x2="${W-R}" y1="${T+ph}" y2="${T+ph}"/><line class="ax" x1="${L}" x2="${L}" y1="${T}" y2="${T+ph}"/>`;
+  g+=`<text x="${L+pw/2}" y="${H-4}" text-anchor="middle">${xl}</text><text x="12" y="${T+ph/2}" text-anchor="middle" transform="rotate(-90 12 ${T+ph/2})">${yl}</text>`;
+  return `<svg class="fig" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Diagram słupkowy">${g}</svg>`;
+}
+function lineChart(xs,ys,xl,yl){
+  const W=380,H=230,L=44,B=40,T=16,R=16,step=2,max=Math.ceil(Math.max(...ys)/step)*step;
+  const ph=H-B-T,pw=W-L-R,sy=ph/max,sx=pw/(xs.length-1);
+  let g='';
+  for(let v=0;v<=max;v+=step){const y=T+ph-v*sy;g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text x="${L-8}" y="${y+4}" text-anchor="end">${v}</text>`}
+  const pts=ys.map((v,i)=>[L+i*sx,T+ph-v*sy]);
+  xs.forEach((x,i)=>{g+=`<line class="gl" x1="${L+i*sx}" x2="${L+i*sx}" y1="${T}" y2="${T+ph}"/><text x="${L+i*sx}" y="${H-B+16}" text-anchor="middle">${x}</text>`});
+  g+=`<line class="ax" x1="${L}" x2="${W-R}" y1="${T+ph}" y2="${T+ph}"/><line class="ax" x1="${L}" x2="${L}" y1="${T}" y2="${T+ph}"/>`;
+  g+=`<polyline class="ln" points="${pts.map(p=>p.join(',')).join(' ')}"/>`+pts.map(p=>`<circle class="dot" cx="${p[0]}" cy="${p[1]}" r="4"/>`).join('');
+  g+=`<text x="${L+pw/2}" y="${H-4}" text-anchor="middle">${xl}</text><text x="12" y="${T+ph/2}" text-anchor="middle" transform="rotate(-90 12 ${T+ph/2})">${yl}</text>`;
+  return `<svg class="fig" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Wykres liniowy">${g}</svg>`;
+}
+function pieChart(sl){
+  const cx=100,cy=100,r=85;let a0=-Math.PI/2,g='';
+  sl.forEach((s,i)=>{const a1=a0+s.p/100*2*Math.PI,large=s.p>50?1:0;
+    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    g+=`<path class="s${i+1}" d="M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${large} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z"/>`;
+    g+=`<rect class="s${i+1}" x="210" y="${40+i*30}" width="16" height="16" rx="3"/><text x="234" y="${53+i*30}">${s.l} – ${s.p}%</text>`;a0=a1});
+  return `<svg class="fig" viewBox="0 0 380 200" width="380" role="img" aria-label="Diagram kołowy">${g}</svg>`;
+}
+function coordRect(){
+  const u=30,x0=-2,x1=6,y0=-2,y1=4,ox=20+(-x0)*u,oy=20+y1*u,W=40+(x1-x0)*u,H=40+(y1-y0)*u;
+  let g='';for(let x=x0;x<=x1;x++)g+=`<line class="gl" x1="${ox+x*u}" x2="${ox+x*u}" y1="20" y2="${H-20}"/>`;
+  for(let y=y0;y<=y1;y++)g+=`<line class="gl" x1="20" x2="${W-20}" y1="${oy-y*u}" y2="${oy-y*u}"/>`;
+  g+=`<line class="ax" x1="20" x2="${W-14}" y1="${oy}" y2="${oy}"/><line class="ax" x1="${ox}" x2="${ox}" y1="14" y2="${H-20}"/>`;
+  g+=`<text x="${W-14}" y="${oy-6}" text-anchor="end">x</text><text x="${ox+6}" y="24">y</text><text x="${ox+u-4}" y="${oy+15}">1</text><text x="${ox-12}" y="${oy-u+4}">1</text>`;
+  const P=[[-1,-1,'A'],[5,-1,'B'],[5,3,'C'],[-1,3,'D']];
+  g+=`<polygon class="shape" points="${P.map(p=>(ox+p[0]*u)+','+(oy-p[1]*u)).join(' ')}"/>`;
+  P.forEach(p=>{g+=`<circle class="dot" cx="${ox+p[0]*u}" cy="${oy-p[1]*u}" r="4"/><text x="${ox+p[0]*u+(p[0]<0?-16:6)}" y="${oy-p[1]*u+(p[1]<0?16:-6)}">${p[2]}</text>`});
+  return `<svg class="fig" viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Prostokąt w układzie współrzędnych">${g}</svg>`;
+}
+function squareHole(){
+  const s=20,x=40,y=20;
+  return `<svg class="fig" viewBox="0 0 300 250" width="300" role="img" aria-label="Kwadrat z wyciętym kołem"><rect class="shape" x="${x}" y="${y}" width="${10*s}" height="${10*s}"/><circle class="hole" cx="${x+5*s}" cy="${y+5*s}" r="${2*s}"/><line class="ax" x1="${x+5*s}" y1="${y+5*s}" x2="${x+7*s}" y2="${y+5*s}"/><circle class="dot" cx="${x+5*s}" cy="${y+5*s}" r="3"/><text x="${x+6*s}" y="${y+5*s-6}" text-anchor="middle">2 cm</text><text x="${x+5*s}" y="${y+10*s+20}" text-anchor="middle">10 cm</text><text x="${x+10*s+8}" y="${y+5*s+4}">10 cm</text></svg>`;
+}
+const gradeChart=()=>barChart(['1','2','3','4','5','6'],[2,4,8,6,3,1],'ocena','liczba uczniów');
+const tempChart=()=>lineChart(['6','8','10','12','14','16','18'],[2,4,7,11,12,10,6],'godzina','temperatura (°C)');
+const travelPie=()=>pieChart([{l:'rower',p:50},{l:'autobus',p:25},{l:'pieszo',p:15},{l:'samochód',p:10}]);
+const ticketTable=`<table class="data"><tr><th>Bilet</th><th>Cena</th></tr><tr><td>jednorazowy normalny</td><td>4,40 zł</td></tr><tr><td>jednorazowy ulgowy</td><td>2,20 zł</td></tr><tr><td>dobowy normalny</td><td>15,00 zł</td></tr></table>`;
+
+// ---------- topics ----------
+const TOPICS=[
+ ['liczby','Liczby i działania'],['potegi','Potęgi i pierwiastki'],['procenty','Procenty'],
+ ['wyrazenia','Wyrażenia algebraiczne'],['rownania','Równania i proporcje'],['dane','Wykresy, tabele, diagramy'],
+ ['stat','Statystyka i prawdopodobieństwo'],['katy','Kąty i trójkąty'],['pitagoras','Twierdzenie Pitagorasa'],
+ ['pola','Pola i obwody figur'],['uklad','Układ współrzędnych i symetrie'],['bryly','Bryły'],['tekstowe','Zadania tekstowe']
+];
+const TNAME=Object.fromEntries(TOPICS);
+
+// ---------- task bank (original tasks in the CKE format) ----------
+// types: abcd | pf | match | num | open
+const BANK=[
+// LICZBY
+{id:'l1',t:'liczby',type:'abcd',q:`Wartość wyrażenia ${f(2,3)} + ${f(1,4)} · 2 jest równa`,o:[f(11,12),f(7,6),f(3,7),f(3,2)],a:'B',h:['Pamiętaj o kolejności działań: najpierw mnożenie, potem dodawanie.',`${f(1,4)} · 2 = ${f(1,2)}. Teraz sprowadź ${f(2,3)} i ${f(1,2)} do wspólnego mianownika 6.`],s:`${f(1,4)} · 2 = ${f(1,2)}, więc ${f(2,3)} + ${f(1,2)} = ${f(4,6)} + ${f(3,6)} = ${f(7,6)}. Odpowiedź B.`},
+{id:'l2',t:'liczby',type:'abcd',q:'Która z liczb jest największa?',o:['0,7',f(3,4),'0,72',f(5,7)],a:'B',h:['Zamień wszystkie liczby na ułamki dziesiętne.',`${f(5,7)} ≈ 0,714.`],s:`${f(3,4)} = 0,75; ${f(5,7)} ≈ 0,714; 0,72 i 0,7 są mniejsze od 0,75. Największa jest ${f(3,4)}.`},
+{id:'l3',t:'liczby',type:'pf',q:'Oceń prawdziwość zdań.',st:['1,2 · 0,5 = 0,6','3 : 0,5 = 1,5'],a:['P','F'],h:['Dzielenie przez 0,5 to to samo co mnożenie przez 2.'],s:'1,2 · 0,5 = 0,6 – prawda. 3 : 0,5 = 3 · 2 = 6, a nie 1,5 – fałsz.'},
+{id:'l4',t:'liczby',type:'num',p:1,q:'Oblicz: (−3) · (−4) − 5 · 2',a:2,h:['Iloczyn dwóch liczb ujemnych jest dodatni.'],s:'(−3) · (−4) = 12, 5 · 2 = 10, 12 − 10 = 2.'},
+{id:'l5',t:'liczby',type:'abcd',q:`Rozwinięcie dziesiętne ułamka ${f(2,11)} to`,o:['0,(18)','0,1(8)','0,18','0,(2)'],a:'A',h:['Podziel 2 przez 11 pisemnie i zobacz, które cyfry się powtarzają.'],s:'2 : 11 = 0,181818… = 0,(18). Odpowiedź A.'},
+{id:'l6',t:'liczby',type:'abcd',q:'Liczba 3,14159 zaokrąglona do części setnych to',o:['3,1','3,14','3,15','3,142'],a:'B',h:['Części setne to druga cyfra po przecinku. Patrz na trzecią cyfrę: 1 &lt; 5.'],s:'Druga cyfra po przecinku to 4, następna to 1 (mniej niż 5), więc zaokrąglamy w dół: 3,14.'},
+{id:'l7',t:'liczby',type:'match',q:`Liczbą przeciwną do −1${f(1,2)} jest ____, a liczbą odwrotną do 1${f(1,2)} jest ____.`,g:[[['A',`1${f(1,2)}`],['B',`−1${f(1,2)}`]],[['1',f(2,3)],['2',f(3,2)],['3',`−${f(2,3)}`]]],a:['A','1'],h:['Liczba przeciwna ma zmieniony znak. Liczba odwrotna to „odwrócony” ułamek.',`1${f(1,2)} = ${f(3,2)}.`],s:`Przeciwna do −1${f(1,2)} to 1${f(1,2)} (A). Odwrotna do 1${f(1,2)} = ${f(3,2)} to ${f(2,3)} (1).`},
+{id:'l8',t:'liczby',type:'num',p:1,q:'Ile liczb całkowitych leży na osi liczbowej między −3,5 a 2,1?',a:6,h:['Wypisz je po kolei, zaczynając od −3.'],s:'Są to: −3, −2, −1, 0, 1, 2. Razem 6 liczb.'},
+{id:'l9',t:'liczby',type:'num',p:2,q:`Oblicz: (1${f(1,2)} − ${f(2,3)}) : ${f(5,6)}`,a:1,h:[`Zamień 1${f(1,2)} na ${f(3,2)} i odejmij, używając mianownika 6.`,'Dzielenie przez ułamek to mnożenie przez jego odwrotność.'],s:`${f(3,2)} − ${f(2,3)} = ${f(9,6)} − ${f(4,6)} = ${f(5,6)}. Potem ${f(5,6)} : ${f(5,6)} = 1.`},
+{id:'l10',t:'liczby',type:'abcd',q:'Najmniejsza wspólna wielokrotność liczb 12 i 18 to',o:['6','36','72','216'],a:'B',h:['Wypisz wielokrotności 18: 18, 36, 54… Która dzieli się przez 12?'],s:'36 dzieli się przez 12 i przez 18, a 18 nie dzieli się przez 12. NWW = 36.'},
+
+// POTĘGI
+{id:'p1',t:'potegi',type:'abcd',q:'Iloczyn 2<sup>3</sup> · 2<sup>4</sup> jest równy',o:['2<sup>7</sup>','2<sup>12</sup>','4<sup>7</sup>','4<sup>12</sup>'],a:'A',h:['Przy mnożeniu potęg o tej samej podstawie dodajemy wykładniki.'],s:'2<sup>3</sup> · 2<sup>4</sup> = 2<sup>3+4</sup> = 2<sup>7</sup>.'},
+{id:'p2',t:'potegi',type:'abcd',q:'Wartość wyrażenia (3<sup>4</sup>)<sup>2</sup> : 3<sup>5</sup> jest równa',o:['3','9','27','81'],a:'C',h:['Potęga potęgi: mnożymy wykładniki. Dzielenie: odejmujemy wykładniki.'],s:'(3<sup>4</sup>)<sup>2</sup> = 3<sup>8</sup>; 3<sup>8</sup> : 3<sup>5</sup> = 3<sup>3</sup> = 27.'},
+{id:'p3',t:'potegi',type:'pf',q:'Oceń prawdziwość zdań.',st:[`${rt(49)} + ${rt(1)} = 8`,`${rt('9 + 16')} = 7`],a:['P','F'],h:['Najpierw oblicz to, co jest pod pierwiastkiem.'],s:`${rt(49)} + ${rt(1)} = 7 + 1 = 8 – prawda. ${rt('9 + 16')} = ${rt(25)} = 5, a nie 7 – fałsz.`},
+{id:'p4',t:'potegi',type:'abcd',q:`Liczba ${rt(50)} leży między liczbami`,o:['6 i 7','7 i 8','8 i 9','24 i 26'],a:'B',h:['Znajdź kwadraty liczb naturalnych blisko 50.'],s:`7<sup>2</sup> = 49 &lt; 50 &lt; 64 = 8<sup>2</sup>, więc 7 &lt; ${rt(50)} &lt; 8.`},
+{id:'p5',t:'potegi',type:'abcd',q:'Liczba 0,00045 zapisana w notacji wykładniczej to',o:['4,5 · 10<sup>−4</sup>','4,5 · 10<sup>−5</sup>','4,5 · 10<sup>4</sup>','4,5 · 10<sup>−3</sup>'],a:'A',h:['Policz, o ile miejsc trzeba przesunąć przecinek, żeby dostać 4,5.'],s:'Przecinek przesuwamy o 4 miejsca w prawo: 0,00045 = 4,5 · 10<sup>−4</sup>.'},
+{id:'p6',t:'potegi',type:'num',p:1,q:'Oblicz: 2<sup>5</sup> − 5<sup>2</sup>',a:7,h:['2<sup>5</sup> = 2·2·2·2·2.'],s:'2<sup>5</sup> = 32, 5<sup>2</sup> = 25, 32 − 25 = 7.'},
+{id:'p7',t:'potegi',type:'abcd',q:`Iloczyn ${rt(12)} · ${rt(3)} jest równy`,o:['6','4','9',`3${rt(2)}`],a:'A',h:[`${rt('a')} · ${rt('b')} = ${rt('a · b')}.`],s:`${rt(12)} · ${rt(3)} = ${rt(36)} = 6.`},
+{id:'p8',t:'potegi',type:'abcd',q:`Wartość ${cb('−27')} jest równa`,o:['−9','−3','3','liczba nie istnieje'],a:'B',h:['Pierwiastek trzeciego stopnia z liczby ujemnej istnieje. Jaka liczba do sześcianu daje −27?'],s:`(−3)<sup>3</sup> = −27, więc ${cb('−27')} = −3.`},
+{id:'p9',t:'potegi',type:'match',q:`Wyrażenie 2${rt(8)} jest równe ____. Wyrażenie ${rt(8)} + ${rt(2)} jest równe ____.`,g:[[['A',`4${rt(2)}`],['B','16']],[['1',rt(10)],['2',`3${rt(2)}`],['3','4']]],a:['A','2'],h:[`${rt(8)} = ${rt('4 · 2')} = 2${rt(2)}.`],s:`2${rt(8)} = 2 · 2${rt(2)} = 4${rt(2)} (A). ${rt(8)} + ${rt(2)} = 2${rt(2)} + ${rt(2)} = 3${rt(2)} (2).`},
+{id:'p10',t:'potegi',type:'num',p:2,q:'Oblicz: (2<sup>10</sup> · 2<sup>−3</sup>) : 2<sup>4</sup>',a:8,h:['Dodaj wykładniki przy mnożeniu, odejmij przy dzieleniu.'],s:'2<sup>10</sup> · 2<sup>−3</sup> = 2<sup>7</sup>; 2<sup>7</sup> : 2<sup>4</sup> = 2<sup>3</sup> = 8.'},
+
+// PROCENTY
+{id:'r1',t:'procenty',type:'abcd',q:'15% liczby 80 to',o:['12','15','5,3','68'],a:'A',h:['15% = 0,15.'],s:'0,15 · 80 = 12.'},
+{id:'r2',t:'procenty',type:'abcd',q:'Cenę butów 120 zł obniżono o 25%. Nowa cena to',o:['95 zł','90 zł','100 zł','30 zł'],a:'B',h:['25% to jedna czwarta.'],s:'25% ze 120 zł to 30 zł. 120 − 30 = 90 zł.'},
+{id:'r3',t:'procenty',type:'pf',q:'Oceń prawdziwość zdań.',st:['Liczba 30 to 60% liczby 50.','Jeśli cena wzrosła o 10%, a potem zmalała o 10%, to wróciła do ceny początkowej.'],a:['P','F'],h:['Sprawdź drugie zdanie na przykładzie: cena 100 zł.'],s:'0,6 · 50 = 30 – prawda. 100 zł → 110 zł → 110 − 11 = 99 zł, czyli nie wraca do 100 zł – fałsz.'},
+{id:'r4',t:'procenty',type:'num',p:1,unit:'zł',q:'Kurtka po podwyżce o 20% kosztuje 240 zł. Ile kosztowała przed podwyżką?',a:200,h:['Nowa cena to 120% starej ceny.','1,2 · x = 240.'],s:'1,2x = 240, więc x = 240 : 1,2 = 200 zł.'},
+{id:'r5',t:'procenty',type:'abcd',q:'Jakim procentem liczby 40 jest liczba 10?',o:['4%','25%','40%','400%'],a:'B',h:[`Oblicz ${f(10,40)} i zamień na procent.`],s:`${f(10,40)} = ${f(1,4)} = 25%.`},
+{id:'r6',t:'procenty',type:'abcd',q:'W klasie jest 25 uczniów, a 8 z nich ma psa. Jaki procent uczniów ma psa?',o:['8%','32%','25%','3,2%'],a:'B',h:[`${f(8,25)} – rozszerz ułamek do mianownika 100.`],s:`${f(8,25)} = ${f(32,100)} = 32%.`},
+{id:'r7',t:'procenty',type:'num',p:2,unit:'zł',q:'Pani Ewa wpłaciła na roczną lokatę 2000 zł. Oprocentowanie lokaty wynosi 5% w skali roku. Od odsetek bank pobiera 19% podatku. Ile złotych odsetek po odliczeniu podatku otrzyma pani Ewa?',a:81,h:['Najpierw oblicz odsetki: 5% z 2000 zł.','Podatek to 19% odsetek, nie całej kwoty.'],s:'Odsetki: 0,05 · 2000 = 100 zł. Podatek: 0,19 · 100 = 19 zł. Po podatku: 100 − 19 = 81 zł.'},
+{id:'r8',t:'procenty',type:'match',q:'Liczba 1,5 to ____ liczby 3. Liczba 6 to ____ liczby 4.',g:[[['A','50%'],['B','200%']],[['1','66%'],['2','150%'],['3','240%']]],a:['A','2'],h:['Podziel pierwszą liczbę przez drugą i pomnóż przez 100%.'],s:'1,5 : 3 = 0,5 = 50% (A). 6 : 4 = 1,5 = 150% (2).'},
+{id:'r9',t:'procenty',type:'abcd',q:'Poparcie dla pomysłu wzrosło z 20% do 25%. Poparcie wzrosło',o:['o 5%','o 5 punktów procentowych','o 45 punktów procentowych','o 20%'],a:'B',h:['Różnica dwóch wartości procentowych to punkty procentowe.'],s:'25% − 20% = 5 punktów procentowych. (W procentach wzrost wynosi 25%, ale takiej odpowiedzi nie ma.)'},
+{id:'r10',t:'procenty',type:'open',q:'Rower kosztował 1500 zł. W marcu jego cenę podniesiono o 10%, a w kwietniu nową cenę obniżono o 10%. O ile złotych cena roweru w kwietniu różni się od ceny początkowej? Czy jest wyższa, czy niższa? Zapisz obliczenia.',crit:['Obliczenie ceny po podwyżce: 1650 zł.','Obliczenie ceny po obniżce: 1485 zł.','Odpowiedź: cena jest niższa o 15 zł.'],h:['Obniżka w kwietniu liczona jest od ceny marcowej, nie od 1500 zł.'],s:'Marzec: 1500 + 0,1 · 1500 = 1650 zł. Kwiecień: 1650 − 0,1 · 1650 = 1650 − 165 = 1485 zł. 1500 − 1485 = 15. Cena w kwietniu jest niższa o 15 zł.'},
+
+// WYRAŻENIA
+{id:'w1',t:'wyrazenia',type:'abcd',q:'Wyrażenie 3(x − 2) − 2(x + 1) po uproszczeniu to',o:['x − 8','x − 4','5x − 8','x − 3'],a:'A',h:['Uważaj na minus przed nawiasem: −2(x + 1) = −2x − 2.'],s:'3x − 6 − 2x − 2 = x − 8.'},
+{id:'w2',t:'wyrazenia',type:'abcd',q:'Wartość wyrażenia 2a<sup>2</sup> − b dla a = −3 i b = 4 jest równa',o:['−22','14','32','40'],a:'B',h:['(−3)<sup>2</sup> = 9, a nie −9.'],s:'2 · 9 − 4 = 18 − 4 = 14.'},
+{id:'w3',t:'wyrazenia',type:'pf',q:'Oceń prawdziwość zdań.',st:['(x + 3)<sup>2</sup> = x<sup>2</sup> + 9','2x · 3x = 6x<sup>2</sup>'],a:['F','P'],h:['(x + 3)<sup>2</sup> = (x + 3)(x + 3). Wymnóż każdy wyraz.'],s:'(x + 3)<sup>2</sup> = x<sup>2</sup> + 6x + 9, więc pierwsze zdanie jest fałszywe. 2x · 3x = 6x<sup>2</sup> – prawda.'},
+{id:'w4',t:'wyrazenia',type:'abcd',q:'Prostokąt ma boki długości a oraz a + 5. Jego obwód opisuje wyrażenie',o:['2a + 5','4a + 10','4a + 5','a<sup>2</sup> + 5a'],a:'B',h:['Obwód = 2 · (pierwszy bok + drugi bok).'],s:'2(a + a + 5) = 2(2a + 5) = 4a + 10.'},
+{id:'w5',t:'wyrazenia',type:'num',p:1,q:'Oblicz wartość wyrażenia 5x − 3(x − 4) dla x = 2,5.',a:17,h:['Najpierw uprość: 5x − 3x + 12.'],s:'5x − 3(x − 4) = 2x + 12. Dla x = 2,5: 5 + 12 = 17.'},
+{id:'w6',t:'wyrazenia',type:'match',q:'Liczbę o 3 większą od podwojonej liczby n zapisujemy jako ____. Kwadrat liczby o 1 mniejszej od n zapisujemy jako ____.',g:[[['A','2n + 3'],['B','2(n + 3)']],[['1','n<sup>2</sup> − 1'],['2','(n − 1)<sup>2</sup>'],['3','n − 1<sup>2</sup>']]],a:['A','2'],h:['Najpierw to, co jest „podwojone” lub „podniesione do kwadratu”, potem resztę.'],s:'Podwojona liczba to 2n, o 3 większa: 2n + 3 (A). Liczba o 1 mniejsza od n to n − 1, jej kwadrat: (n − 1)<sup>2</sup> (2).'},
+{id:'w7',t:'wyrazenia',type:'abcd',q:'Iloczyn 4x<sup>2</sup> · (−2x) jest równy',o:['−8x<sup>3</sup>','−8x<sup>2</sup>','2x<sup>3</sup>','−6x<sup>3</sup>'],a:'A',h:['Mnożymy liczby przez liczby, a x przez x: x<sup>2</sup> · x = x<sup>3</sup>.'],s:'4 · (−2) = −8, x<sup>2</sup> · x = x<sup>3</sup>. Wynik: −8x<sup>3</sup>.'},
+{id:'w8',t:'wyrazenia',type:'abcd',q:'Ania ma x zł, a Bartek ma o 12 zł więcej niż dwa razy tyle, co Ania. Ile złotych mają razem?',o:['3x + 12','2x + 12','3x + 24','x + 24'],a:'A',h:['Bartek ma 2x + 12.'],s:'x + (2x + 12) = 3x + 12.'},
+{id:'w9',t:'wyrazenia',type:'num',p:2,q:'Oblicz wartość wyrażenia (2x − 1)(x + 3) − 2x<sup>2</sup> dla x = −2.',a:-13,h:['Możesz najpierw uprościć: wymnóż nawiasy, potem odejmij 2x<sup>2</sup>.'],s:'(2x − 1)(x + 3) = 2x<sup>2</sup> + 6x − x − 3 = 2x<sup>2</sup> + 5x − 3. Po odjęciu 2x<sup>2</sup>: 5x − 3. Dla x = −2: −10 − 3 = −13.'},
+
+// RÓWNANIA
+{id:'e1',t:'rownania',type:'abcd',q:'Rozwiązaniem równania 3x − 7 = 11 jest liczba',o:[f(4,3),'6','18','54'],a:'B',h:['Dodaj 7 do obu stron, potem podziel przez 3.'],s:'3x = 18, więc x = 6.'},
+{id:'e2',t:'rownania',type:'abcd',q:'Rozwiązaniem równania 2(x + 1) = 5x − 4 jest liczba',o:['2','−2',f(6,7),'1'],a:'A',h:['Opuść nawias: 2x + 2 = 5x − 4.'],s:'2x + 2 = 5x − 4 → 6 = 3x → x = 2.'},
+{id:'e3',t:'rownania',type:'pf',q:'Oceń prawdziwość zdań.',st:[`Liczba 4 jest rozwiązaniem równania ${f('x',2)} + 3 = 5.`,'Równanie 2x + 1 = 2x + 3 ma nieskończenie wiele rozwiązań.'],a:['P','F'],h:['Podstaw 4 do pierwszego równania. W drugim odejmij 2x od obu stron.'],s:'4 : 2 + 3 = 5 – prawda. Z drugiego równania wychodzi 1 = 3, czyli równanie nie ma rozwiązań – fałsz.'},
+{id:'e4',t:'rownania',type:'num',p:1,q:'Rozwiąż proporcję: x : 4 = 15 : 6',a:10,h:['Iloczyn wyrazów skrajnych = iloczyn wyrazów środkowych: 6x = 4 · 15.'],s:'6x = 60, więc x = 10.'},
+{id:'e5',t:'rownania',type:'abcd',q:'Rozwiązaniem układu równań x + y = 10 i x − y = 4 jest para',o:['x = 7, y = 3','x = 3, y = 7','x = 6, y = 4','x = 5, y = 5'],a:'A',h:['Dodaj równania stronami: y się skróci.'],s:'2x = 14, więc x = 7, a y = 10 − 7 = 3.'},
+{id:'e6',t:'rownania',type:'num',p:2,q:'Suma trzech kolejnych liczb naturalnych jest równa 72. Jaka jest największa z tych liczb?',a:25,h:['Oznacz liczby: n, n + 1, n + 2.'],s:'n + n + 1 + n + 2 = 72 → 3n + 3 = 72 → n = 23. Liczby: 23, 24, 25. Największa: 25.'},
+{id:'e7',t:'rownania',type:'abcd',q:'Na ciasto dla 4 osób potrzeba 300 g mąki. Ile mąki potrzeba na ciasto dla 6 osób?',o:['400 g','450 g','500 g','200 g'],a:'B',h:['Ile mąki przypada na 1 osobę?'],s:'300 : 4 = 75 g na osobę. 75 · 6 = 450 g.'},
+{id:'e8',t:'rownania',type:'abcd',q:'6 robotników wykona pracę w 10 dni. W ile dni tę samą pracę wykona 4 robotników, pracując w tym samym tempie?',o:['15','6,7','12','20'],a:'A',h:['Mniej robotników – więcej dni. To proporcjonalność odwrotna.'],s:'Praca to 6 · 10 = 60 „dniówek”. 60 : 4 = 15 dni.'},
+{id:'e9',t:'rownania',type:'open',q:'Za 3 zeszyty i 2 długopisy zapłacono 19 zł, a za 2 takie zeszyty i 3 takie długopisy – 16 zł. Ile kosztuje jeden zeszyt, a ile jeden długopis? Zapisz obliczenia.',crit:['Ułożenie układu równań: 3z + 2d = 19 i 2z + 3d = 16 (lub inny poprawny sposób).','Doprowadzenie do równania z jedną niewiadomą (np. z + d = 7 i z − d = 3).','Wynik: zeszyt 5 zł, długopis 2 zł.'],h:['Dodaj równania stronami, a potem podziel przez 5.','Odejmij równania stronami.'],s:'Dodajemy: 5z + 5d = 35, więc z + d = 7. Odejmujemy: z − d = 3. Stąd 2z = 10, z = 5, d = 2. Zeszyt kosztuje 5 zł, długopis 2 zł.'},
+{id:'e10',t:'rownania',type:'num',p:1,q:'Rozwiąż równanie: 0,5x − 1,5 = 2',a:7,h:['Dodaj 1,5 do obu stron, potem pomnóż przez 2.'],s:'0,5x = 3,5, więc x = 7.'},
+
+// DANE
+{id:'d1',t:'dane',type:'abcd',q:'Na diagramie przedstawiono oceny z klasówki z matematyki w klasie 8b. Ilu uczniów pisało klasówkę?',fig:gradeChart,o:['6','21','24','26'],a:'C',h:['Dodaj wysokości wszystkich słupków.'],s:'2 + 4 + 8 + 6 + 3 + 1 = 24.'},
+{id:'d2',t:'dane',type:'abcd',q:'Diagram przedstawia oceny z klasówki w klasie 8b. Jaka część uczniów otrzymała ocenę co najmniej 4?',fig:gradeChart,o:[f(5,12),f(10,12),f(1,4),f(7,12)],a:'A',h:['„Co najmniej 4” to oceny 4, 5 i 6.','Wszystkich uczniów jest 24.'],s:`4, 5 lub 6 dostało 6 + 3 + 1 = 10 uczniów. ${f(10,24)} = ${f(5,12)}.`},
+{id:'d3',t:'dane',type:'pf',q:'Diagram przedstawia oceny z klasówki w klasie 8b. Oceń prawdziwość zdań.',fig:gradeChart,st:['Średnia ocen z klasówki jest większa od 3.','Najczęściej występującą oceną jest 4.'],a:['P','F'],h:['Średnia = suma (ocena · liczba uczniów) : liczba uczniów.'],s:`Suma ocen: 1·2 + 2·4 + 3·8 + 4·6 + 5·3 + 6·1 = 79. Średnia: 79 : 24 ≈ 3,29 &gt; 3 – prawda. Najwyższy słupek ma ocena 3 – drugie zdanie jest fałszywe.`},
+{id:'d4',t:'dane',type:'num',p:1,unit:'°C',q:'Wykres pokazuje temperaturę powietrza w ciągu dnia. Ile stopni wynosiła różnica między najwyższą a najniższą temperaturą?',fig:tempChart,a:10,h:['Odczytaj najwyższy i najniższy punkt wykresu.'],s:'Najwyższa: 12°C (godz. 14), najniższa: 2°C (godz. 6). Różnica: 10°C.'},
+{id:'d5',t:'dane',type:'abcd',q:'Wykres pokazuje temperaturę powietrza w ciągu dnia. W którym przedziale czasu temperatura rosła najszybciej?',fig:tempChart,o:['6–8','8–10','10–12','12–14'],a:'C',h:['Policz, o ile wzrosła temperatura w każdym przedziale.'],s:'6–8: +2°C, 8–10: +3°C, 10–12: +4°C, 12–14: +1°C. Najszybciej w godzinach 10–12.'},
+{id:'d6',t:'dane',type:'num',p:1,unit:'zł',q:'W tabeli podano ceny biletów komunikacji miejskiej. Pan Adam kupił 3 bilety jednorazowe normalne i 4 bilety jednorazowe ulgowe. Ile zapłacił?',fig:()=>ticketTable,a:22,h:['3 · 4,40 zł oraz 4 · 2,20 zł.'],s:'3 · 4,40 = 13,20 zł, 4 · 2,20 = 8,80 zł. Razem 22 zł.'},
+{id:'d7',t:'dane',type:'abcd',q:'Diagram kołowy pokazuje, jak 200 uczniów szkoły dociera na lekcje. Ilu uczniów przychodzi pieszo?',fig:travelPie,o:['15','30','50','20'],a:'B',h:['15% z 200.'],s:'0,15 · 200 = 30 uczniów.'},
+{id:'d8',t:'dane',type:'pf',q:'Diagram kołowy pokazuje, jak 200 uczniów szkoły dociera na lekcje. Oceń prawdziwość zdań.',fig:travelPie,st:['Rowerem dojeżdża dwa razy więcej uczniów niż autobusem.','Samochodem dojeżdża 10 uczniów.'],a:['P','F'],h:['10% to procent, a nie liczba uczniów.'],s:'Rower 50%, autobus 25% – dwa razy więcej, prawda. Samochodem: 10% z 200 = 20 uczniów, a nie 10 – fałsz.'},
+
+// STATYSTYKA I PRAWDOPODOBIEŃSTWO
+{id:'s1',t:'stat',type:'abcd',q:'Średnia arytmetyczna liczb 4, 7, 7, 10, 12 jest równa',o:['7','8','10','40'],a:'B',h:['Dodaj liczby i podziel przez to, ile ich jest.'],s:'(4 + 7 + 7 + 10 + 12) : 5 = 40 : 5 = 8.'},
+{id:'s2',t:'stat',type:'abcd',q:'Mediana liczb 3, 9, 1, 7, 5, 8 jest równa',o:['5','6','7','5,5'],a:'B',h:['Najpierw ustaw liczby od najmniejszej do największej.','Przy parzystej liczbie danych mediana to średnia dwóch środkowych.'],s:'1, 3, 5, 7, 8, 9. Środkowe: 5 i 7. Mediana: (5 + 7) : 2 = 6.'},
+{id:'s3',t:'stat',type:'abcd',q:'Rzucamy raz zwykłą kostką do gry. Prawdopodobieństwo wyrzucenia liczby pierwszej jest równe',o:[f(1,3),f(1,2),f(2,3),f(1,6)],a:'B',h:['Liczby pierwsze na kostce: 2, 3, 5. Pamiętaj, że 1 nie jest liczbą pierwszą.'],s:`Są 3 korzystne wyniki (2, 3, 5) na 6 możliwych: ${f(3,6)} = ${f(1,2)}.`},
+{id:'s4',t:'stat',type:'num',p:1,q:`W pudełku są 3 kule czerwone, 5 niebieskich i kilka zielonych. Prawdopodobieństwo wylosowania kuli czerwonej jest równe ${f(1,4)}. Ile jest kul zielonych?`,a:4,h:[`Jeśli 3 kule to ${f(1,4)} wszystkich, to ile jest wszystkich kul?`],s:'Wszystkich kul jest 3 · 4 = 12. Zielonych: 12 − 3 − 5 = 4.'},
+{id:'s5',t:'stat',type:'pf',q:'Losujemy jedną liczbę ze zbioru {1, 2, 3, …, 20}. Oceń prawdziwość zdań.',st:[`Prawdopodobieństwo wylosowania liczby podzielnej przez 5 jest równe ${f(1,5)}.`,`Prawdopodobieństwo wylosowania liczby większej od 15 jest równe ${f(1,4)}.`],a:['P','P'],h:['Wypisz liczby spełniające każdy warunek.'],s:`Podzielne przez 5: 5, 10, 15, 20 – to ${f(4,20)} = ${f(1,5)}, prawda. Większe od 15: 16, 17, 18, 19, 20 – to ${f(5,20)} = ${f(1,4)}, prawda.`},
+{id:'s6',t:'stat',type:'abcd',q:'Ile różnych liczb dwucyfrowych można zapisać za pomocą cyfr 1, 2, 3, jeśli cyfry mogą się powtarzać?',o:['6','9','3','27'],a:'B',h:['Na miejscu dziesiątek – 3 możliwości, na miejscu jedności – też 3.'],s:'3 · 3 = 9 liczb: 11, 12, 13, 21, 22, 23, 31, 32, 33.'},
+{id:'s7',t:'stat',type:'num',p:2,unit:'lat',q:'Średnia wieku pięciu osób wynosi 12 lat. Gdy dołączyła do nich szósta osoba, średnia wieku wzrosła do 13 lat. Ile lat ma szósta osoba?',a:18,h:['Suma wieku pięciu osób to 5 · 12.','Suma wieku sześciu osób to 6 · 13.'],s:'5 · 12 = 60, 6 · 13 = 78. Szósta osoba ma 78 − 60 = 18 lat.'},
+{id:'s8',t:'stat',type:'abcd',q:'Na ile sposobów trzy osoby mogą ustawić się w kolejce?',o:['3','6','9','27'],a:'B',h:['Pierwsze miejsce może zająć 3 osoby, drugie 2, trzecie 1.'],s:'3 · 2 · 1 = 6.'},
+{id:'s9',t:'stat',type:'match',q:'Rzucamy dwiema monetami. Prawdopodobieństwo wyrzucenia dwóch orłów jest równe ____, a prawdopodobieństwo wyrzucenia co najmniej jednego orła jest równe ____.',g:[[['A',f(1,4)],['B',f(1,2)]],[['1',f(1,2)],['2',f(3,4)],['3',f(1,4)]]],a:['A','2'],h:['Wypisz wszystkie wyniki: OO, OR, RO, RR.'],s:`Są 4 wyniki. Dwa orły: tylko OO – ${f(1,4)} (A). Co najmniej jeden orzeł: OO, OR, RO – ${f(3,4)} (2).`},
+
+// KĄTY I TRÓJKĄTY
+{id:'k1',t:'katy',type:'abcd',q:'Dwa kąty trójkąta mają miary 47° i 68°. Trzeci kąt ma miarę',o:['65°','75°','115°','55°'],a:'A',h:['Suma kątów w trójkącie wynosi 180°.'],s:'180° − 47° − 68° = 65°.'},
+{id:'k2',t:'katy',type:'abcd',q:'Kąt przy podstawie trójkąta równoramiennego ma miarę 40°. Kąt między ramionami ma miarę',o:['40°','80°','100°','140°'],a:'C',h:['W trójkącie równoramiennym oba kąty przy podstawie są równe.'],s:'180° − 2 · 40° = 100°.'},
+{id:'k3',t:'katy',type:'pf',q:'Oceń prawdziwość zdań.',st:['Suma miar kątów przyległych jest równa 180°.','Kąty wierzchołkowe mają różne miary.'],a:['P','F'],h:['Kąty wierzchołkowe powstają przy przecięciu dwóch prostych – leżą naprzeciw siebie.'],s:'Kąty przyległe tworzą kąt półpełny, czyli 180° – prawda. Kąty wierzchołkowe są zawsze równe – fałsz.'},
+{id:'k4',t:'katy',type:'num',p:1,unit:'°',q:'W trójkącie ABC kąt przy wierzchołku A ma 55°. Kąt zewnętrzny przy wierzchołku C ma 130°. Jaką miarę ma kąt przy wierzchołku B?',a:75,h:['Kąt zewnętrzny trójkąta jest równy sumie dwóch kątów wewnętrznych do niego nieprzyległych.'],s:'130° = 55° + kąt B, więc kąt B = 75°.'},
+{id:'k5',t:'katy',type:'abcd',q:'Suma miar kątów wewnętrznych sześciokąta jest równa',o:['540°','720°','900°','1080°'],a:'B',h:['Suma kątów n-kąta: (n − 2) · 180°.'],s:'(6 − 2) · 180° = 720°.'},
+{id:'k6',t:'katy',type:'abcd',q:'Kąt wewnętrzny ośmiokąta foremnego ma miarę',o:['120°','135°','140°','150°'],a:'B',h:['Suma kątów ośmiokąta to (8 − 2) · 180°. W foremnym wszystkie kąty są równe.'],s:'6 · 180° = 1080°, 1080° : 8 = 135°.'},
+{id:'k7',t:'katy',type:'abcd',q:'W trójkącie prostokątnym jeden kąt ostry jest 2 razy większy od drugiego. Większy kąt ostry ma miarę',o:['30°','45°','60°','90°'],a:'C',h:['Kąty ostre trójkąta prostokątnego sumują się do 90°.'],s:'x + 2x = 90°, x = 30°. Większy kąt: 60°.'},
+{id:'k8',t:'katy',type:'match',q:'Trójkąt o kątach 30°, 60°, 90° jest ____. Trójkąt o bokach 5 cm, 5 cm i 8 cm jest ____.',g:[[['A','prostokątny'],['B','rozwartokątny']],[['1','równoboczny'],['2','równoramienny'],['3','różnoboczny']]],a:['A','2'],h:['Jeden z kątów to 90°. Dwa boki mają tę samą długość.'],s:'Kąt 90° – trójkąt prostokątny (A). Dwa równe boki – równoramienny (2).'},
+{id:'k9',t:'katy',type:'pf',q:'Oceń prawdziwość zdań.',st:['Z odcinków o długościach 3 cm, 4 cm i 8 cm można zbudować trójkąt.','Z odcinków o długościach 5 cm, 6 cm i 10 cm można zbudować trójkąt.'],a:['F','P'],h:['Suma dwóch krótszych boków musi być większa od najdłuższego.'],s:'3 + 4 = 7 &lt; 8 – nie można, fałsz. 5 + 6 = 11 &gt; 10 – można, prawda.'},
+{id:'k10',t:'katy',type:'open',q:'W równoległoboku kąt ostry jest o 50° mniejszy od kąta rozwartego. Oblicz miary kątów tego równoległoboku. Zapisz obliczenia.',crit:['Zapisanie zależności: suma sąsiednich kątów równoległoboku to 180° (np. x + x + 50° = 180°).','Poprawne miary: 65° i 115°.'],h:['Sąsiednie kąty równoległoboku sumują się do 180°.'],s:'x + (x + 50°) = 180° → 2x = 130° → x = 65°. Kąty mają 65° i 115° (po dwa takie kąty).'},
+
+// PITAGORAS
+{id:'t1',t:'pitagoras',type:'abcd',q:'Przyprostokątne trójkąta prostokątnego mają długości 6 i 8. Przeciwprostokątna ma długość',o:['10','14','7','100'],a:'A',h:['a<sup>2</sup> + b<sup>2</sup> = c<sup>2</sup>.'],s:`36 + 64 = 100, c = ${rt(100)} = 10.`},
+{id:'t2',t:'pitagoras',type:'abcd',q:'Przeciwprostokątna trójkąta prostokątnego ma długość 13, a jedna z przyprostokątnych 5. Druga przyprostokątna ma długość',o:['8','12','18',rt(194)],a:'B',h:['b<sup>2</sup> = c<sup>2</sup> − a<sup>2</sup>.'],s:`169 − 25 = 144, b = ${rt(144)} = 12.`},
+{id:'t3',t:'pitagoras',type:'abcd',q:'Przekątna kwadratu o boku 5 cm ma długość',o:['10 cm',`5${rt(2)} cm`,'25 cm',`2${rt(5)} cm`],a:'B',h:['Przekątna kwadratu o boku a ma długość a√2.'],s:`5<sup>2</sup> + 5<sup>2</sup> = 50, d = ${rt(50)} = 5${rt(2)} cm.`},
+{id:'t4',t:'pitagoras',type:'pf',q:'Oceń prawdziwość zdań.',st:['Trójkąt o bokach 7, 24, 25 jest prostokątny.','Trójkąt o bokach 4, 5, 6 jest prostokątny.'],a:['P','F'],h:['Sprawdź, czy suma kwadratów dwóch krótszych boków równa się kwadratowi najdłuższego.'],s:'49 + 576 = 625 = 25<sup>2</sup> – prawda. 16 + 25 = 41 ≠ 36 – fałsz.'},
+{id:'t5',t:'pitagoras',type:'abcd',q:'Wysokość trójkąta równobocznego o boku 6 ma długość',o:[`3${rt(3)}`,`6${rt(3)}`,`3${rt(2)}`,'3'],a:'A',h:['Wysokość dzieli trójkąt na dwa trójkąty prostokątne o przyprostokątnej 3 i przeciwprostokątnej 6.'],s:`h<sup>2</sup> = 36 − 9 = 27, h = ${rt(27)} = 3${rt(3)}.`},
+{id:'t6',t:'pitagoras',type:'num',p:2,unit:'m',q:'Drabina o długości 5 m jest oparta o ścianę. Dolny koniec drabiny jest w odległości 1,4 m od ściany. Na jakiej wysokości drabina dotyka ściany?',a:4.8,h:['Drabina to przeciwprostokątna.','5<sup>2</sup> − 1,4<sup>2</sup> = 25 − 1,96.'],s:`h<sup>2</sup> = 25 − 1,96 = 23,04, h = ${rt('23,04')} = 4,8 m.`},
+{id:'t7',t:'pitagoras',type:'abcd',q:'Odległość między punktami A = (1, 2) i B = (4, 6) jest równa',o:['5','7',rt(7),'25'],a:'A',h:['Różnica współrzędnych x to 3, różnica y to 4.'],s:`${rt('3² + 4²')} = ${rt(25)} = 5.`},
+{id:'t8',t:'pitagoras',type:'open',q:'Przekątna prostokąta ma długość 17 cm, a jeden z jego boków 8 cm. Oblicz pole tego prostokąta. Zapisz obliczenia.',crit:['Zastosowanie twierdzenia Pitagorasa: 8<sup>2</sup> + b<sup>2</sup> = 17<sup>2</sup>.','Obliczenie drugiego boku: b = 15 cm.','Obliczenie pola: 120 cm<sup>2</sup>.'],h:['Przekątna dzieli prostokąt na dwa trójkąty prostokątne.'],s:'b<sup>2</sup> = 289 − 64 = 225, b = 15 cm. Pole: 8 · 15 = 120 cm<sup>2</sup>.'},
+{id:'t9',t:'pitagoras',type:'abcd',q:'Przekątne rombu mają długości 6 i 8. Bok tego rombu ma długość',o:['5','7','10','14'],a:'A',h:['Przekątne rombu przecinają się pod kątem prostym i dzielą się na połowy.'],s:`Połowy przekątnych: 3 i 4. Bok: ${rt('9 + 16')} = 5.`},
+
+// POLA
+{id:'f1',t:'pola',type:'abcd',q:'Pole trójkąta o podstawie 10 cm i wysokości 7 cm jest równe',o:['70 cm²','35 cm²','17 cm²','34 cm²'],a:'B',h:[`P = ${f(1,2)} · a · h.`],s:`${f(1,2)} · 10 · 7 = 35 cm².`},
+{id:'f2',t:'pola',type:'abcd',q:'Trapez ma podstawy długości 8 cm i 4 cm oraz wysokość 5 cm. Jego pole jest równe',o:['30 cm²','60 cm²','160 cm²','17 cm²'],a:'A',h:[`P = ${f('(a + b) · h',2)}.`],s:`${f('(8 + 4) · 5',2)} = ${f(60,2)} = 30 cm².`},
+{id:'f3',t:'pola',type:'num',p:1,unit:'cm²',q:'Oblicz pole koła o promieniu 3 cm. Przyjmij π ≈ 3,14.',a:28.26,h:['P = πr<sup>2</sup>.'],s:'3,14 · 3<sup>2</sup> = 3,14 · 9 = 28,26 cm².'},
+{id:'f4',t:'pola',type:'abcd',q:'Obwód koła o średnicy 10 cm jest równy',o:['10π cm','20π cm','25π cm','5π cm'],a:'A',h:['Obwód = 2πr = πd.'],s:'π · 10 = 10π cm.'},
+{id:'f5',t:'pola',type:'pf',q:'Oceń prawdziwość zdań.',st:['Kwadrat o boku 4 cm ma pole 16 cm² i obwód 16 cm.','Jeśli bok kwadratu zwiększymy 2 razy, to jego pole zwiększy się 2 razy.'],a:['P','F'],h:['Sprawdź drugie zdanie: kwadrat o boku 1 i o boku 2.'],s:'4 · 4 = 16 cm², 4 · 4 = 16 cm – prawda. Bok 1 → pole 1, bok 2 → pole 4. Pole rośnie 4 razy – fałsz.'},
+{id:'f6',t:'pola',type:'num',p:2,unit:'kg',q:`Działka ma kształt prostokąta o wymiarach 24 m × 15 m. ${f(1,3)} jej powierzchni zajmuje dom z podjazdem, a resztę obsiano trawą. 1 kg nasion wystarcza na 40 m². Ile kilogramów nasion zużyto?`,a:6,h:['Najpierw pole działki, potem 2/3 tego pola.'],s:`Pole: 24 · 15 = 360 m². Trawa: ${f(2,3)} · 360 = 240 m². Nasiona: 240 : 40 = 6 kg.`},
+{id:'f7',t:'pola',type:'abcd',q:'Pole rombu o przekątnych 6 cm i 10 cm jest równe',o:['60 cm²','30 cm²','16 cm²','15 cm²'],a:'B',h:[`P = ${f('e · f',2)}.`],s:`${f('6 · 10',2)} = 30 cm².`},
+{id:'f8',t:'pola',type:'open',q:'Z kwadratowej płytki o boku 10 cm wycięto koło o promieniu 2 cm (rysunek). Oblicz pole pozostałej części płytki. Przyjmij π ≈ 3,14. Zapisz obliczenia.',fig:squareHole,crit:['Obliczenie pola kwadratu: 100 cm².','Obliczenie pola koła: 4π ≈ 12,56 cm².','Wynik: 100 − 4π ≈ 87,44 cm².'],h:['Pole części = pole kwadratu − pole koła.'],s:'Kwadrat: 10 · 10 = 100 cm². Koło: π · 2<sup>2</sup> = 4π ≈ 12,56 cm². Zostaje: 100 − 12,56 = 87,44 cm².'},
+{id:'f9',t:'pola',type:'abcd',q:'Prostokąt ma pole 48 cm², a jeden z jego boków ma 6 cm. Obwód tego prostokąta jest równy',o:['14 cm','28 cm','48 cm','24 cm'],a:'B',h:['Drugi bok = 48 : 6.'],s:'Drugi bok: 8 cm. Obwód: 2 · (6 + 8) = 28 cm.'},
+
+// UKŁAD WSPÓŁRZĘDNYCH
+{id:'u1',t:'uklad',type:'abcd',q:'Punkt symetryczny do punktu (3, −2) względem osi x ma współrzędne',o:['(3, 2)','(−3, −2)','(−3, 2)','(2, 3)'],a:'A',h:['Przy symetrii względem osi x zmienia się znak tylko drugiej współrzędnej.'],s:'(3, −2) → (3, 2).'},
+{id:'u2',t:'uklad',type:'abcd',q:'Punkt symetryczny do punktu (−4, 5) względem początku układu współrzędnych ma współrzędne',o:['(4, 5)','(−4, −5)','(4, −5)','(5, −4)'],a:'C',h:['Przy symetrii względem punktu (0, 0) zmieniają się znaki obu współrzędnych.'],s:'(−4, 5) → (4, −5).'},
+{id:'u3',t:'uklad',type:'abcd',q:'Środek odcinka o końcach A = (−2, 4) i B = (6, 0) ma współrzędne',o:['(4, 4)','(2, 2)','(8, −4)','(2, 4)'],a:'B',h:['Środek: średnia współrzędnych x i średnia współrzędnych y.'],s:'((−2 + 6) : 2, (4 + 0) : 2) = (2, 2).'},
+{id:'u4',t:'uklad',type:'pf',q:'Oceń prawdziwość zdań.',st:['Kwadrat ma 4 osie symetrii.','Trójkąt równoramienny, który nie jest równoboczny, ma 2 osie symetrii.'],a:['P','F'],h:['Narysuj figury i spróbuj je „złożyć na pół”.'],s:'Kwadrat: 2 przekątne i 2 proste przez środki boków – 4 osie, prawda. Trójkąt równoramienny ma 1 oś – fałsz.'},
+{id:'u5',t:'uklad',type:'num',p:1,q:'Prostokąt ABCD ma wierzchołki A = (−1, −1), B = (5, −1), C = (5, 3), D = (−1, 3). Oblicz pole tego prostokąta (w jednostkach kwadratowych).',fig:coordRect,a:24,h:['Długość AB to różnica współrzędnych x, długość BC – różnica współrzędnych y.'],s:'AB = 5 − (−1) = 6, BC = 3 − (−1) = 4. Pole: 6 · 4 = 24.'},
+{id:'u6',t:'uklad',type:'abcd',q:'Która z liter ma środek symetrii?',o:['A','Z','T','E'],a:'B',h:['Obróć literę o 180°. Która wygląda tak samo?'],s:'Litera Z po obrocie o 180° wygląda tak samo, więc ma środek symetrii.'},
+{id:'u7',t:'uklad',type:'match',q:'Punkt (0, −3) leży na ____. Punkt (−2, −5) leży w ____ ćwiartce układu współrzędnych.',g:[[['A','osi x'],['B','osi y']],[['1','I'],['2','II'],['3','III']]],a:['B','3'],h:['Jeśli pierwsza współrzędna jest równa 0, punkt leży na osi y.','III ćwiartka: obie współrzędne ujemne.'],s:'x = 0, więc punkt leży na osi y (B). Obie współrzędne ujemne – III ćwiartka (3).'},
+{id:'u8',t:'uklad',type:'num',p:1,q:'Dane są punkty A = (−3, 2) i B = (5, 2). Oblicz długość odcinka AB.',a:8,h:['Obie mają tę samą współrzędną y, więc odcinek jest poziomy.'],s:'5 − (−3) = 8.'},
+
+// BRYŁY
+{id:'b1',t:'bryly',type:'abcd',q:'Objętość prostopadłościanu o krawędziach 3 cm, 4 cm i 5 cm jest równa',o:['12 cm³','47 cm³','60 cm³','94 cm³'],a:'C',h:['V = a · b · c.'],s:'3 · 4 · 5 = 60 cm³.'},
+{id:'b2',t:'bryly',type:'abcd',q:'Pole powierzchni całkowitej sześcianu o krawędzi 3 cm jest równe',o:['27 cm²','36 cm²','54 cm²','9 cm²'],a:'C',h:['Sześcian ma 6 ścian, każda to kwadrat.'],s:'6 · 3 · 3 = 54 cm².'},
+{id:'b3',t:'bryly',type:'pf',q:'Oceń prawdziwość zdań.',st:['Graniastosłup sześciokątny ma 18 krawędzi.','Ostrosłup trójkątny ma 6 wierzchołków.'],a:['P','F'],h:['Graniastosłup n-kątny ma 3n krawędzi. Ostrosłup n-kątny ma n + 1 wierzchołków.'],s:'3 · 6 = 18 – prawda. Ostrosłup trójkątny ma 3 + 1 = 4 wierzchołki – fałsz.'},
+{id:'b4',t:'bryly',type:'num',p:1,unit:'l',q:'Akwarium ma kształt prostopadłościanu o wymiarach 50 cm × 30 cm × 40 cm. Ile litrów wody mieści?',a:60,h:['1 litr = 1 dm³ = 1000 cm³.'],s:'50 · 30 · 40 = 60 000 cm³ = 60 dm³ = 60 litrów.'},
+{id:'b5',t:'bryly',type:'abcd',q:'Ostrosłup ma w podstawie kwadrat o boku 6 cm, a jego wysokość to 5 cm. Objętość ostrosłupa jest równa',o:['180 cm³','60 cm³','90 cm³','30 cm³'],a:'B',h:[`V = ${f(1,3)} · P<sub>p</sub> · H.`],s:`${f(1,3)} · 36 · 5 = 60 cm³.`},
+{id:'b6',t:'bryly',type:'abcd',q:'Ostrosłup, którego podstawą jest siedmiokąt, ma',o:['8 krawędzi','14 krawędzi','21 krawędzi','7 krawędzi'],a:'B',h:['7 krawędzi podstawy i 7 krawędzi bocznych.'],s:'7 + 7 = 14 krawędzi.'},
+{id:'b7',t:'bryly',type:'open',q:'Graniastosłup prawidłowy czworokątny ma krawędź podstawy 4 cm. Przekątna ściany bocznej ma długość 5 cm. Oblicz objętość tego graniastosłupa. Zapisz obliczenia.',crit:['Obliczenie wysokości graniastosłupa z twierdzenia Pitagorasa: H = 3 cm.','Obliczenie pola podstawy: 16 cm².','Wynik: V = 48 cm³.'],h:['Ściana boczna to prostokąt 4 cm × H. Jej przekątna to 5 cm.','4<sup>2</sup> + H<sup>2</sup> = 5<sup>2</sup>.'],s:'H<sup>2</sup> = 25 − 16 = 9, H = 3 cm. Podstawa: 4 · 4 = 16 cm². V = 16 · 3 = 48 cm³.'},
+{id:'b8',t:'bryly',type:'num',p:2,unit:'cm³',q:'Pole powierzchni całkowitej sześcianu jest równe 150 cm². Oblicz objętość tego sześcianu.',a:125,h:['Jedna ściana ma pole 150 : 6.'],s:'150 : 6 = 25 cm², więc krawędź a = 5 cm. V = 5<sup>3</sup> = 125 cm³.'},
+{id:'b9',t:'bryly',type:'match',q:'Siatka złożona z 2 trójkątów i 3 prostokątów to siatka ____. Bryła, która ma 5 wierzchołków i 5 ścian, to ____.',g:[[['A','graniastosłupa trójkątnego'],['B','ostrosłupa trójkątnego']],[['1','ostrosłup czworokątny'],['2','graniastosłup trójkątny'],['3','sześcian']]],a:['A','1'],h:['Graniastosłup ma 2 podstawy. Policz wierzchołki każdej bryły z listy.'],s:'2 podstawy trójkątne + 3 ściany boczne – graniastosłup trójkątny (A). Ostrosłup czworokątny: 4 + 1 = 5 wierzchołków, 4 + 1 = 5 ścian (1).'},
+
+// ZADANIA TEKSTOWE
+{id:'x1',t:'tekstowe',type:'abcd',q:'Rowerzysta jedzie ze stałą prędkością 18 km/h. Jaką drogę pokona w ciągu 40 minut?',o:['7,2 km','12 km','27 km','10 km'],a:'B',h:[`40 minut to ${f(2,3)} godziny.`],s:`s = v · t = 18 · ${f(2,3)} = 12 km.`},
+{id:'x2',t:'tekstowe',type:'abcd',q:'Pociąg wyjechał o 13:48 i dojechał na miejsce o 16:15. Jak długo trwała podróż?',o:['2 h 27 min','2 h 33 min','3 h 27 min','3 h 33 min'],a:'A',h:['Od 13:48 do 14:00 jest 12 minut.'],s:'13:48 → 14:00: 12 min. 14:00 → 16:15: 2 h 15 min. Razem 2 h 27 min.'},
+{id:'x3',t:'tekstowe',type:'num',p:1,unit:'km/h',q:'Samochód przejechał 150 km w czasie 2 godzin 30 minut. Z jaką średnią prędkością jechał?',a:60,h:['2 h 30 min = 2,5 h.'],s:'v = 150 : 2,5 = 60 km/h.'},
+{id:'x4',t:'tekstowe',type:'pf',q:'Oceń prawdziwość zdań.',st:['1,5 h = 90 min','0,2 h = 20 min'],a:['P','F'],h:['1 h = 60 min. Pomnóż przez 60.'],s:'1,5 · 60 = 90 min – prawda. 0,2 · 60 = 12 min – fałsz.'},
+{id:'x5',t:'tekstowe',type:'abcd',q:'1 maja 2027 roku wypada w sobotę. W jaki dzień tygodnia wypada 11 maja 2027 roku (dzień egzaminu z matematyki)?',o:['w poniedziałek','we wtorek','w środę','w niedzielę'],a:'B',h:['Od 1 do 11 maja mija 10 dni. 10 = 7 + 3.'],s:'Po 7 dniach (8 maja) znowu jest sobota. 3 dni później: niedziela, poniedziałek, wtorek. 11 maja to wtorek.'},
+{id:'x6',t:'tekstowe',type:'num',p:2,unit:'zł',q:'Bilet normalny do kina kosztuje 24 zł, a ulgowy jest o 25% tańszy. Do kina poszło 3 nauczycieli (bilety normalne) i 22 uczniów (bilety ulgowe). Ile zapłacono za wszystkie bilety?',a:468,h:['Bilet ulgowy: 24 zł − 25% z 24 zł.'],s:'Ulgowy: 24 − 6 = 18 zł. Uczniowie: 22 · 18 = 396 zł. Nauczyciele: 3 · 24 = 72 zł. Razem 468 zł.'},
+{id:'x7',t:'tekstowe',type:'open',q:'Odległość między miastami A i B wynosi 210 km. Z miasta A wyjechał samochód z prędkością 80 km/h, a w tym samym czasie z miasta B, naprzeciw niego, wyjechał motocykl z prędkością 60 km/h. Po jakim czasie się spotkają? W jakiej odległości od miasta A nastąpi spotkanie? Zapisz obliczenia.',crit:['Zauważenie, że w ciągu 1 h zbliżają się o 140 km (lub ułożenie równania 80t + 60t = 210).','Obliczenie czasu: 1,5 h.','Obliczenie odległości od A: 120 km.'],h:['Pojazdy jadą naprzeciw siebie, więc ich prędkości się dodają.'],s:'80 + 60 = 140 km/h. t = 210 : 140 = 1,5 h. Samochód przejedzie 80 · 1,5 = 120 km. Spotkają się po 1,5 h, 120 km od miasta A.'},
+{id:'x8',t:'tekstowe',type:'abcd',q:'3 kg jabłek kosztują 7,50 zł. Ile kosztuje 5 kg tych jabłek?',o:['12,50 zł','12,00 zł','15,00 zł','10,50 zł'],a:'A',h:['Ile kosztuje 1 kg?'],s:'7,50 : 3 = 2,50 zł za kg. 5 · 2,50 = 12,50 zł.'},
+{id:'x9',t:'tekstowe',type:'open',q:'Pan Jan chce pomalować dwukrotnie ściany pokoju o wymiarach podłogi 5 m × 4 m i wysokości 2,5 m. Okno i drzwi mają razem 4 m² i nie będą malowane. 1 litr farby wystarcza na pomalowanie 6 m² jedną warstwą. Farba jest sprzedawana w puszkach po 2,5 litra, w cenie 59 zł za puszkę. Ile zapłaci pan Jan za farbę? Zapisz obliczenia.',crit:['Obliczenie pola ścian: 2 · (5 + 4) · 2,5 = 45 m².','Odjęcie okna i drzwi: 41 m², a dla dwóch warstw 82 m².','Obliczenie liczby puszek: 82 : 6 ≈ 13,7 l, więc 6 puszek.','Wynik: 6 · 59 = 354 zł.'],h:['Ściany pokoju to 4 prostokąty: dwa 5 m × 2,5 m i dwa 4 m × 2,5 m.','Liczbę puszek zaokrąglamy w górę – nie można kupić części puszki.'],s:'Ściany: 2 · 5 · 2,5 + 2 · 4 · 2,5 = 25 + 20 = 45 m². Bez okna i drzwi: 41 m². Dwie warstwy: 82 m². Farba: 82 : 6 ≈ 13,67 l. Puszki: 13,67 : 2,5 ≈ 5,47, czyli 6 puszek. Koszt: 6 · 59 = 354 zł.'},
+];
+
+// normalize tasks into "parts"
+const L4=['A','B','C','D'];
+BANK.forEach(t=>{
+  if(t.type==='abcd'){t.parts=[{opts:t.o.map((x,i)=>({k:L4[i],t:x})),ans:t.a}];t.p=1}
+  if(t.type==='pf'){t.parts=t.st.map((x,i)=>({stmt:x,opts:[{k:'P',t:'P'},{k:'F',t:'F'}],ans:t.a[i]}));t.p=1}
+  if(t.type==='match'){t.parts=t.g.map((grp,i)=>({opts:grp.map(([k,x])=>({k,t:x})),ans:t.a[i]}));t.p=1}
+  if(t.type==='open')t.p=t.crit.length;
+  t.closed=!!t.parts;
+});
+const BY=Object.fromEntries(BANK.map(t=>[t.id,t]));
+
+// ---------- storage (per-browser convenience) ----------
+const KEY='matma-e8-v1';
+let S={res:{},hist:[],exam:null};
+try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+// ---------- helpers ----------
+const app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pl=n=>n===1?'punkt':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'punkty':'punktów';
+const fmt=n=>String(n).replace('.',',');
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function parseNum(s){
+  if(s==null)return NaN;
+  s=String(s).trim().toLowerCase().replace(/−|–/g,'-').replace(/,/g,'.');
+  s=s.replace(/\s*(cm³|cm²|cm|m²|m|km\/h|km|zł|lat|kg|l|°c|°|%)$/,'').trim();
+  let m=s.match(/^(-?)(\d+)\s+(\d+)\/(\d+)$/);
+  if(m)return (m[1]?-1:1)*(+m[2]+ +m[3]/ +m[4]);
+  m=s.match(/^(-?\d*\.?\d+)\s*\/\s*(\d*\.?\d+)$/);
+  if(m)return +m[1]/ +m[2];
+  s=s.replace(/\s/g,'');
+  return s===''?NaN:Number(s);
+}
+const numOk=(t,v)=>{const x=parseNum(v);return !isNaN(x)&&Math.abs(x-t.a)<1e-6};
+const choiceOk=(t,sel)=>t.parts.every((p,i)=>sel&&sel[i]===p.ans);
+const ansText=t=>t.closed?t.parts.map(p=>p.ans).join(', '):t.type==='num'?fmt(t.a)+(t.unit?' '+t.unit:''):'';
+const figHTML=t=>t.fig?`<div class="fig-wrap">${t.fig()}</div>`:'';
+
+function optBtn(i,o,sel,reveal,t,compact){
+  let c='opt';
+  if(sel&&sel[i]===o.k)c+=' sel';
+  if(reveal){if(o.k===t.parts[i].ans)c+=' right';else if(sel&&sel[i]===o.k)c+=' wrong'}
+  return `<button type="button" class="${c}" data-p="${i}" data-k="${o.k}" ${reveal?'disabled':''} aria-pressed="${sel&&sel[i]===o.k}"><span class="k">${o.k}</span>${compact?'':`<span class="t">${o.t}</span>`}</button>`;
+}
+function answerHTML(t,ans,reveal,key){
+  if(t.type==='abcd')return `<div class="opts">${t.parts[0].opts.map(o=>optBtn(0,o,ans,reveal,t)).join('')}</div>`;
+  if(t.type==='pf')return `<p class="instr">Wybierz P, jeśli zdanie jest prawdziwe, albo F – jeśli jest fałszywe.</p><div class="pf">${t.parts.map((p,i)=>`<div class="pf-row"><div class="pf-s">${p.stmt}</div><div class="pf-b">${p.opts.map(o=>optBtn(i,o,ans,reveal,t,true)).join('')}</div></div>`).join('')}</div>`;
+  if(t.type==='match')return `<p class="instr">Wybierz odpowiedź spośród ${t.parts[0].opts.map(o=>o.k).join(' i ')} oraz odpowiedź spośród ${t.parts[1].opts.map(o=>o.k).join(', ')}.</p>${t.parts.map((p,i)=>`<div class="grp"><div class="eyebrow">Luka ${i+1}</div><div class="opts">${p.opts.map(o=>optBtn(i,o,ans,reveal,t)).join('')}</div></div>`).join('')}`;
+  if(t.type==='num'){const st=reveal?(numOk(t,ans)?' ok':' bad'):'';
+    return `<label class="numin${st}"><span class="muted">Odpowiedź:</span><input id="in-${key}" data-in="${t.id}" inputmode="decimal" autocomplete="off" value="${esc(ans||'')}" ${reveal?'readonly':''} placeholder="np. 12,5">${t.unit?`<span>${t.unit}</span>`:''}</label>`}
+  if(t.type==='open')return `<label class="stack" style="gap:6px"><span class="instr">Rozwiąż zadanie na kartce lub zapisz tu najważniejsze obliczenia i odpowiedź.</span><textarea id="tx-${key}" data-in="${t.id}" ${reveal?'readonly':''}>${esc(ans||'')}</textarea></label>`;
+}
+function taskHTML(t,ans,reveal,label,key){
+  return `<article class="task"><div class="task-h"><span class="num">${label}</span><span class="row" style="gap:8px"><span class="tag">${TNAME[t.t]}</span><span class="pts">${t.p} pkt</span></span></div>
+  <div class="q">${t.q}</div>${figHTML(t)}${answerHTML(t,ans,reveal,key)}</article>`;
+}
+function critHTML(t,checked,group){
+  return `<ul class="crit">${t.crit.map((c,i)=>`<li><label><input type="checkbox" id="cr-${group}-${i}" data-crit="${i}" ${checked&&checked[i]?'checked':''}><span>${c} <b class="muted">(1 pkt)</b></span></label></li>`).join('')}</ul>`;
+}
+function topicStats(id){const ts=BANK.filter(t=>t.t===id);let ok=0,bad=0;ts.forEach(t=>{if(S.res[t.id]==='ok')ok++;else if(S.res[t.id]==='bad')bad++});return{n:ts.length,ok,bad}}
+const reviewIds=()=>BANK.filter(t=>S.res[t.id]==='bad').map(t=>t.id);
+
+// ---------- router ----------
+let view='home';
+function go(v,arg){view=v;document.querySelectorAll('.nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===(v==='drill'?'topics':v==='results'?'exam':v)?'page':'false'));
+  ({home:vHome,topics:vTopics,drill:vDrill,exam:vExam,results:vResults})[v](arg);window.scrollTo(0,0)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){e.preventDefault();go(b.dataset.go)}});
+
+// ---------- HOME ----------
+const EXAM_DATE=new Date(2027,4,11,9,0,0);
+function vHome(){
+  const days=Math.max(0,Math.ceil((EXAM_DATE-Date.now())/864e5));
+  const okN=Object.values(S.res).filter(v=>v==='ok').length;
+  const rev=reviewIds().length;
+  const inProg=S.exam&&!S.exam.done;
+  app.innerHTML=`<div class="stack" style="gap:28px">
+  <section class="hero"><div class="stack" style="gap:10px"><span class="eyebrow">Egzamin ósmoklasisty · matematyka</span><h1>Ćwicz zadania jak na <span class="hl">prawdziwym egzaminie</span></h1><p class="muted">Zadania zamknięte i otwarte w formacie CKE, z podpowiedziami krok po kroku i pełnymi rozwiązaniami.</p></div>
+  <div class="count"><b>${days}</b>dni do egzaminu</div></section>
+  <div class="facts"><div><b>11.05.2027</b><span>wtorek, godz. 9:00</span></div><div><b>125 min</b><span>czas pisania</span></div><div><b>30 pkt</b><span>maksymalny wynik</span></div><div><b>6.07.2027</b><span>wyniki</span></div></div>
+  <div class="modes">
+    <button class="mode" type="button" data-go="topics"><span class="eyebrow">Tryb 1</span><h2>Ćwiczenia tematyczne</h2><p class="muted">${TOPICS.length} działów, ${BANK.length} zadań. Sprawdzasz od razu i możesz poprosić o podpowiedź.</p><p class="hist">Poprawnie: ${okN} / ${BANK.length}${rev?` · do powtórki: ${rev}`:''}</p><span class="go">Wybierz dział →</span></button>
+    <button class="mode" type="button" data-go="exam"><span class="eyebrow">Tryb 2</span><h2>Egzamin próbny</h2><p class="muted">Losowy arkusz: 15 zadań zamkniętych i zadania otwarte, razem 30 punktów. Odliczanie 125 minut.</p>${S.hist.length?`<p class="hist">Ostatnie wyniki: ${S.hist.slice(-4).map(h=>h.score+'/30').join(' · ')}</p>`:''}<span class="go">${inProg?'Wróć do rozpoczętego egzaminu →':'Rozpocznij egzamin →'}</span></button>
+  </div>
+  <section class="stack" style="gap:10px"><h2>Oficjalne materiały CKE</h2><p class="muted">Kolejność, w jakiej warto z nich korzystać. Linki otwierają się w nowej karcie.</p>
+  <ol class="links">
+    <li><span class="n">1</span><div><a href="https://zspptaszkowa.gminagrybow.pl/files/53/informator-matematyka.pdf" target="_blank" rel="noopener">Informator o egzaminie z matematyki (PDF)</a><p class="muted">Opis arkusza, zasady oceniania, przykładowe zadania z rozwiązaniami. Obowiązuje od roku 2024/2025. <a href="https://cke.gov.pl/egzamin-osmoklasisty/informatory/" target="_blank" rel="noopener">Strona CKE z informatorami</a>.</p></div></li>
+    <li><span class="n">2</span><div><a href="https://cke.gov.pl/egzamin-osmoklasisty/arkusze/" target="_blank" rel="noopener">Arkusze z poprzednich lat</a><p class="muted">Najlepszy trening. Zacznij od 2026, potem 2025 i 2024. Przykład: <a href="https://fhbkobuhipsjzpbdsmpu.supabase.co/storage/v1/object/public/cke-archive/egzamin-osmoklasisty/matematyka/2026-czerwiec-dodatkowy-egzamin-osmoklasisty/arkusz.pdf" target="_blank" rel="noopener">arkusz z czerwca 2026 (termin dodatkowy)</a>.</p></div></li>
+    <li><span class="n">3</span><div><a href="https://www.cke.gov.pl/egzamin-osmoklasisty/materialy-dodatkowe/zestawy-zadan-powtorkowych/" target="_blank" rel="noopener">Zestawy zadań powtórkowych</a><p class="muted">Ułożone według wymagań z klas 7–8. Dobre do ćwiczenia słabszych działów.</p></div></li>
+    <li><span class="n">4</span><div><a href="https://www.gov.pl/web/edukacja/arkusze-do-egzaminu-probnego-dla-osmoklasisty--matematyka" target="_blank" rel="noopener">Arkusze próbne z zasadami oceniania (gov.pl)</a></div></li>
+  </ol></section></div>`;
+}
+
+// ---------- TOPICS ----------
+function vTopics(){
+  const rev=reviewIds();
+  app.innerHTML=`<div class="stack"><div class="row" style="justify-content:space-between"><div class="stack" style="gap:4px"><h1>Ćwiczenia</h1><p class="muted">Wybierz dział. Zielony pasek – zadania rozwiązane dobrze, czerwony – do poprawy.</p></div>
+  ${rev.length?`<button class="btn" type="button" id="rev">Do powtórki (${rev.length})</button>`:''}</div>
+  <div class="topics">${TOPICS.map(([id,name])=>{const s=topicStats(id);return `<button class="topic" type="button" data-topic="${id}"><h3>${name}</h3><div class="bar"><i style="width:${s.ok/s.n*100}%"></i><i class="b" style="width:${s.bad/s.n*100}%"></i></div><div class="meta"><span>${s.n} zadań</span><span>${s.ok}/${s.n} ✓</span></div></button>`}).join('')}</div>
+  <button class="btn quiet" type="button" id="reset" style="align-self:flex-start">Wyczyść postęp ćwiczeń</button></div>`;
+  app.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>startDrill(BANK.filter(t=>t.t===b.dataset.topic).map(t=>t.id),TNAME[b.dataset.topic]));
+  const r=document.getElementById('rev');if(r)r.onclick=()=>startDrill(rev,'Do powtórki');
+  const rs=document.getElementById('reset');let armed=false;
+  rs.onclick=()=>{if(!armed){armed=true;rs.textContent='Na pewno? Kliknij jeszcze raz';rs.classList.add('danger');return}S.res={};save();vTopics()};
+}
+
+// ---------- DRILL ----------
+let D=null;
+function startDrill(ids,title){
+  const first=ids.findIndex(id=>S.res[id]!=='ok');
+  D={ids,title,i:first<0?0:first};resetTask();go('drill');
+}
+function resetTask(){Object.assign(D,{ans:[],checked:false,hints:0,crit:[],graded:false})}
+function vDrill(){
+  const t=BY[D.ids[D.i]];
+  const reveal=D.checked;
+  let fb='';
+  if(D.checked&&t.type!=='open'){
+    const ok=t.closed?choiceOk(t,D.ans):numOk(t,D.ans);
+    fb=ok?`<div class="fb ok">Dobrze! +${t.p} ${pl(t.p)}</div>`:`<div class="fb bad">Jeszcze nie. Poprawna odpowiedź: ${ansText(t)}</div>`;
+  }
+  if(D.graded){const n=D.crit.filter(Boolean).length;fb=`<div class="fb ${n===t.p?'ok':'info'}">Twoja ocena: ${n} / ${t.p} ${pl(t.p)}. ${n===t.p?'Świetnie!':'Zadanie trafi do powtórki.'}</div>`}
+  const hintsHTML=D.hints?`<ol class="hints">${t.h.slice(0,D.hints).map((h,i)=>`<li><b>Podpowiedź ${i+1}</b>${h}</li>`).join('')}</ol>`:'';
+  const solHTML=reveal?`<div class="sol"><h3>Rozwiązanie</h3><p>${t.s}</p>${t.type==='open'?`<p style="margin-top:10px"><b>Oceń się jak egzaminator.</b> Zaznacz to, co masz w swoim rozwiązaniu:</p>${critHTML(t,D.crit,'d')}`:''}</div>`:'';
+  const canCheck=t.closed?t.parts.every((p,i)=>D.ans[i]):t.type==='num'?String(D.ans||'').trim()!=='':true;
+  app.innerHTML=`<div class="stack">
+  <div class="row" style="justify-content:space-between"><button class="back" type="button" data-go="topics">← Działy</button><span class="eyebrow">${D.title}</span></div>
+  <div class="dots" role="navigation" aria-label="Zadania">${D.ids.map((id,i)=>`<button type="button" data-i="${i}" class="${S.res[id]||''}" aria-current="${i===D.i}" aria-label="Zadanie ${i+1}">${i+1}</button>`).join('')}</div>
+  ${taskHTML(t,D.checked||t.type==='open'?D.ans:D.ans,reveal,`Zadanie ${D.i+1} z ${D.ids.length}`,'d')}
+  ${hintsHTML}${fb}${solHTML}
+  <div class="row">
+    ${!reveal?`<button class="btn" type="button" id="check" ${canCheck?'':'disabled'}>${t.type==='open'?'Pokaż rozwiązanie':'Sprawdź'}</button>`:''}
+    ${reveal&&t.type==='open'&&!D.graded?`<button class="btn" type="button" id="grade">Zapisz moją ocenę</button>`:''}
+    ${!reveal&&D.hints<t.h.length?`<button class="btn ghost" type="button" id="hint">Podpowiedź (${t.h.length-D.hints})</button>`:''}
+    ${!reveal&&t.type!=='open'?`<button class="btn quiet" type="button" id="giveup">Pokaż rozwiązanie</button>`:''}
+    ${reveal?`<button class="btn ${t.type==='open'&&!D.graded?'quiet':''}" type="button" id="next">${D.i<D.ids.length-1?'Następne zadanie →':'Wróć do działów'}</button>`:''}
+    ${reveal?`<button class="btn quiet" type="button" id="again">Spróbuj jeszcze raz</button>`:''}
+  </div></div>`;
+  wireAnswers(app,t,D.ans,(a)=>{D.ans=a;const c=document.getElementById('check');if(c&&t.closed)vDrill();else if(c)c.disabled=String(a||'').trim()===''});
+  app.querySelectorAll('.dots button').forEach(b=>b.onclick=()=>{D.i=+b.dataset.i;resetTask();vDrill()});
+  const $=id=>document.getElementById(id);
+  if($('check'))$('check').onclick=()=>{D.checked=true;if(t.type!=='open'){S.res[t.id]=(t.closed?choiceOk(t,D.ans):numOk(t,D.ans))?'ok':'bad';save()}vDrill()};
+  if($('giveup'))$('giveup').onclick=()=>{D.checked=true;S.res[t.id]='bad';save();vDrill()};
+  if($('hint'))$('hint').onclick=()=>{D.hints++;vDrill()};
+  if($('grade'))$('grade').onclick=()=>{D.graded=true;S.res[t.id]=D.crit.filter(Boolean).length===t.p?'ok':'bad';save();vDrill()};
+  if($('next'))$('next').onclick=()=>{if(D.i<D.ids.length-1){D.i++;resetTask();vDrill();window.scrollTo(0,0)}else go('topics')};
+  if($('again'))$('again').onclick=()=>{resetTask();vDrill()};
+  app.querySelectorAll('[data-crit]').forEach(c=>c.onchange=()=>{D.crit[+c.dataset.crit]=c.checked});
+}
+function wireAnswers(root,t,cur,onChange){
+  root.querySelectorAll(`.opt:not(:disabled)`).forEach(b=>{if(!b.closest('.task'))return;b.onclick=()=>{const a=(cur||[]).slice();a[+b.dataset.p]=b.dataset.k;onChange(a)}});
+  const inp=root.querySelector(`[data-in="${t.id}"]`);
+  if(inp&&!inp.readOnly){inp.oninput=()=>onChange(inp.value);if(t.type==='num')inp.onkeydown=e=>{if(e.key==='Enter'){const c=document.getElementById('check');if(c&&!c.disabled)c.click()}}}
+}
+
+// ---------- EXAM ----------
+const EXAM_MIN=125;
+function buildPaper(){
+  // closed part: 15 tasks, spread across topics
+  const byT={};BANK.filter(t=>t.closed).forEach(t=>(byT[t.t]=byT[t.t]||[]).push(t.id));
+  Object.keys(byT).forEach(k=>byT[k]=shuffle(byT[k]));
+  const order=shuffle(Object.keys(byT));const closed=[];let r=0;
+  while(closed.length<15){const k=order[r%order.length];if(byT[k].length)closed.push(byT[k].pop());r++}
+  // open part: tasks worth 2–4 pts, exactly 15 pts, 5–6 tasks, distinct topics, at least 2 written-out tasks
+  const pool=shuffle(BANK.filter(t=>t.type==='open'||(t.type==='num'&&t.p>=2)));
+  let best=null;
+  (function dfs(i,pick,sum,topics){
+    if(best)return;
+    if(sum===15&&pick.length>=5&&pick.filter(t=>t.type==='open').length>=2){best=pick.slice();return}
+    if(i>=pool.length||pick.length>=6||sum>=15)return;
+    const t=pool[i];
+    if(!topics.has(t.t)&&sum+t.p<=15){pick.push(t);topics.add(t.t);dfs(i+1,pick,sum+t.p,topics);pick.pop();topics.delete(t.t)}
+    dfs(i+1,pick,sum,topics);
+  })(0,[],0,new Set());
+  const open=best.sort((a,b)=>a.p-b.p).map(t=>t.id);
+  return {id:Date.now(),closed:shuffle(closed),open,ans:{},self:{},endAt:Date.now()+EXAM_MIN*6e4,pausedLeft:null,done:false};
+}
+function left(){const e=S.exam;return e.pausedLeft!=null?e.pausedLeft:Math.max(0,e.endAt-Date.now())}
+const mmss=ms=>{const s=Math.ceil(ms/1000),m=Math.floor(s/60);return `${m}:${String(s%60).padStart(2,'0')}`};
+function vExam(){
+  if(!S.exam||S.exam.done){
+    app.innerHTML=`<div class="stack" style="gap:20px"><div class="stack" style="gap:6px"><h1>Egzamin próbny</h1><p class="muted">Arkusz losowany z bazy zadań, ułożony tak jak prawdziwy egzamin.</p></div>
+    <div class="task"><ul class="stack" style="gap:8px;margin:0;padding-left:20px">
+      <li><b>15 zadań zamkniętych</b> po 1 punkcie: wybór odpowiedzi, prawda/fałsz, dobieranie.</li>
+      <li><b>Zadania otwarte</b> za 2–4 punkty, razem 15 punktów. Zapisz rozwiązanie na kartce lub w polu tekstowym.</li>
+      <li><b>125 minut.</b> Odpowiedzi sprawdzisz dopiero po zakończeniu. Zadania otwarte ocenisz sam, według kryteriów egzaminatora.</li>
+      <li>Przygotuj kartkę, długopis i linijkę. Na egzaminie nie wolno używać kalkulatora.</li></ul></div>
+    <div class="row"><button class="btn" type="button" id="start">Rozpocznij egzamin</button>${S.exam&&S.exam.done?`<button class="btn quiet" type="button" id="last">Zobacz ostatni wynik</button>`:''}</div></div>`;
+    document.getElementById('start').onclick=()=>{S.exam=buildPaper();save();vExam()};
+    const l=document.getElementById('last');if(l)l.onclick=()=>go('results');
+    return;
+  }
+  const e=S.exam,paused=e.pausedLeft!=null;
+  const all=[...e.closed,...e.open];
+  const answered=all.filter(id=>{const a=e.ans[id],t=BY[id];return t.closed?a&&t.parts.every((p,i)=>a[i]):a&&String(a).trim()}).length;
+  app.innerHTML=`<div class="stack">
+  <div class="ebar"><div class="stack" style="gap:0"><span class="eyebrow">Pozostały czas</span><span class="timer" id="timer">${mmss(left())}</span></div>
+  <span class="muted hist">${answered}/${all.length} z odpowiedzią</span>
+  <div class="row"><button class="btn quiet" type="button" id="pause">${paused?'Wznów':'Pauza'}</button><button class="btn" type="button" id="finish">Zakończ</button></div></div>
+  ${paused?`<div class="pause"><h2>Pauza</h2><p class="muted">Czas jest zatrzymany. Zadania są ukryte.</p><button class="btn" type="button" id="resume">Wznów egzamin</button></div>`:
+  `<p class="part">Zadania zamknięte · 1–${e.closed.length}</p>
+  ${e.closed.map((id,i)=>`<div data-task="${id}">${taskHTML(BY[id],e.ans[id],false,`Zadanie ${i+1}.`,'e'+id)}</div>`).join('')}
+  <p class="part">Zadania otwarte · ${e.closed.length+1}–${all.length}</p>
+  ${e.open.map((id,i)=>`<div data-task="${id}">${taskHTML(BY[id],e.ans[id],false,`Zadanie ${e.closed.length+i+1}.`,'e'+id)}</div>`).join('')}
+  <div class="row"><button class="btn" type="button" id="finish2">Zakończ i sprawdź</button></div>`}
+  </div>`;
+  app.querySelectorAll('[data-task]').forEach(box=>{const t=BY[box.dataset.task];
+    const wire=()=>wireAnswers(box,t,e.ans[t.id],a=>{e.ans[t.id]=a;save();if(t.closed){box.innerHTML=taskHTML(t,a,false,box.querySelector('.num').textContent,'e'+t.id);wire()}updCount()});wire()});
+  const $=id=>document.getElementById(id);
+  const togglePause=()=>{if(e.pausedLeft!=null){e.endAt=Date.now()+e.pausedLeft;e.pausedLeft=null}else e.pausedLeft=left();save();vExam()};
+  $('pause').onclick=togglePause;if($('resume'))$('resume').onclick=togglePause;
+  [$('finish'),$('finish2')].forEach(b=>{if(!b)return;let armed=false;b.onclick=()=>{if(!armed){armed=true;b.textContent='Na pewno? Kliknij ponownie';b.classList.add('danger');setTimeout(()=>{armed=false;b.textContent=b.id==='finish'?'Zakończ':'Zakończ i sprawdź';b.classList.remove('danger')},4000);return}finishExam()}});
+  function updCount(){const n=all.filter(id=>{const a=e.ans[id],t=BY[id];return t.closed?a&&t.parts.every((p,i)=>a[i]):a&&String(a).trim()}).length;const el=app.querySelector('.ebar .hist');if(el)el.textContent=`${n}/${all.length} z odpowiedzią`}
+}
+function finishExam(){const e=S.exam;if(e.pausedLeft==null)e.pausedLeft=left();e.done=true;e.usedMs=EXAM_MIN*6e4-e.pausedLeft;recordHist();save();go('results')}
+function examScore(e){
+  let total=0;const per={};
+  [...e.closed,...e.open].forEach(id=>{const t=BY[id];let pts=0;
+    if(t.closed)pts=choiceOk(t,e.ans[id])?1:0;
+    else if(t.type==='num')pts=numOk(t,e.ans[id])?t.p:0;
+    else pts=(e.self[id]||[]).filter(Boolean).length;
+    total+=pts;per[t.t]=per[t.t]||[0,0];per[t.t][0]+=pts;per[t.t][1]+=t.p});
+  return{total,per};
+}
+function recordHist(){const e=S.exam,sc=examScore(e).total,h=S.hist.find(x=>x.id===e.id);if(h)h.score=sc;else S.hist.push({id:e.id,score:sc});S.hist=S.hist.slice(-10)}
+setInterval(()=>{
+  if(!S.exam||S.exam.done||S.exam.pausedLeft!=null)return;
+  const ms=left();
+  if(ms<=0){finishExam();return}
+  const el=document.getElementById('timer');if(el&&view==='exam'){el.textContent=mmss(ms);el.classList.toggle('low',ms<10*6e4)}
+},1000);
+
+// ---------- RESULTS ----------
+function vResults(){
+  const e=S.exam;if(!e||!e.done){go('exam');return}
+  const {total,per}=examScore(e);
+  const openSelf=e.open.filter(id=>BY[id].type==='open');
+  const pending=openSelf.filter(id=>!e.self[id]).length;
+  const all=[...e.closed,...e.open];
+  app.innerHTML=`<div class="stack" style="gap:22px">
+  <h1>Wynik egzaminu próbnego</h1>
+  <div class="score"><div class="big">${total}<small> / 30</small></div><div class="stack" style="gap:6px"><b>${Math.round(total/30*100)}% punktów</b><span class="muted">Czas pisania: ${mmss(e.usedMs||0)} z ${EXAM_MIN}:00</span>${pending?`<span class="fb info">Oceń ${pending} ${pending===1?'zadanie otwarte':'zadania otwarte'} poniżej – zaznacz kryteria, które spełnia Twoje rozwiązanie. Wynik zaktualizuje się od razu.</span>`:''}</div></div>
+  <section class="stack" style="gap:8px"><h2>Wyniki według działów</h2><div class="tbl-wrap"><table class="brk"><tr><th>Dział</th><th>Punkty</th></tr>
+  ${TOPICS.filter(([id])=>per[id]).map(([id,n])=>`<tr><td>${n}</td><td>${per[id][0]} / ${per[id][1]}</td></tr>`).join('')}</table></div></section>
+  <section class="stack"><h2>Przegląd zadań</h2>
+  ${all.map((id,i)=>{const t=BY[id];const a=e.ans[id];
+    let st='';if(t.closed)st=choiceOk(t,a)?'<div class="fb ok">Dobrze · 1 pkt</div>':`<div class="fb bad">${a&&a.length?'Źle':'Brak odpowiedzi'} · poprawnie: ${ansText(t)}</div>`;
+    else if(t.type==='num')st=numOk(t,a)?`<div class="fb ok">Dobrze · ${t.p} pkt</div>`:`<div class="fb bad">${a?'Źle':'Brak odpowiedzi'} · poprawnie: ${ansText(t)}</div>`;
+    return `<div class="stack" style="gap:10px" data-rv="${id}">${taskHTML(t,a,true,`Zadanie ${i+1}.`,'r'+id)}${st}<div class="sol"><h3>Rozwiązanie</h3><p>${t.s}</p>${t.type==='open'?`<p style="margin-top:10px"><b>Twoja ocena:</b></p>${critHTML(t,e.self[id],'r'+id)}`:''}</div></div>`}).join('')}
+  </section>
+  <div class="row"><button class="btn" type="button" id="newex">Nowy egzamin próbny</button><button class="btn quiet" type="button" data-go="topics">Ćwicz słabsze działy</button></div></div>`;
+  app.querySelectorAll('[data-rv]').forEach(box=>{const id=box.dataset.rv;box.querySelectorAll('[data-crit]').forEach(c=>c.onchange=()=>{
+    const arr=e.self[id]||BY[id].crit.map(()=>false);arr[+c.dataset.crit]=c.checked;e.self[id]=arr;recordHist();save();
+    const sc=examScore(e).total;app.querySelector('.score .big').innerHTML=`${sc}<small> / 30</small>`;app.querySelector('.score b').textContent=`${Math.round(sc/30*100)}% punktów`})});
+  document.getElementById('newex').onclick=()=>{S.exam=buildPaper();save();go('exam')};
+}
+
+go('home');
+</script>
