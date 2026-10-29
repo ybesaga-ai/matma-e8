@@ -9,7 +9,7 @@ Practice app for the egzamin ósmoklasisty in math (11 May 2027, 125 min, 30 pts
 Progress (solved tasks, mock exam scores) is saved in the browser. A different browser or device starts from zero.
 
 ## What's inside
-- **Ćwiczenia** (topic drills): 120 original tasks in 13 topics, written in CKE task formats (A–D, prawda/fałsz, dobieranie, open numeric answers, open written tasks). Each task has step-by-step hints and a worked solution. Wrong answers go to the "Do powtórki" list.
+- **Ćwiczenia** (topic drills): 227 original tasks in 13 topics (16–18 per topic), written in CKE task formats (A–D, prawda/fałsz, dobieranie, open numeric answers, open written tasks). Each task has step-by-step hints and a worked solution. Wrong answers go to the "Do powtórki" list.
 - **Egzamin próbny** (mock exam): a random paper with 15 closed tasks (1 pt each) plus open tasks worth 15 pts, so 30 pts in total. It runs on a 125-minute timer with pause. Numeric answers are checked automatically. Written tasks are self-scored against the examiner's criteria.
 - Links to the official CKE materials, in the suggested study order.
 
